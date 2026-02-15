@@ -95,9 +95,11 @@ The login page has quick-fill buttons for these demo accounts:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@ecqes.edu | admin123 |
-| Lecturer | lecturer@ecqes.edu | lecturer123 |
-| Student | student@ecqes.edu | student123 |
+| Admin | admin@admin.edu | admin123 |
+| Lecturer | lecturer@lecturer.edu | lecturer123 |
+| Student | student@student.edu | student123 |
+| Student | pranu@gmail.edu | pranu123 |
+| Student | nagendra@gmail.edu | 12345678 |
 
 ---
 
