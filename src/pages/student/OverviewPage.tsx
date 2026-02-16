@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import type { StudentStats, AssignedQuiz, PaginatedAssignedQuizzes, AttemptSummary, PaginatedAttempts } from "@/types/student";
+import type { StudentStatsResponse, StudentStatsSummary, AssignedQuiz, AttemptSummary, PaginatedAttempts } from "@/types/student";
 import { StatCard } from "@/components/admin/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,11 @@ import { Badge } from "@/components/ui/badge";
 export default function OverviewPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<StudentStats>({
-    totalAssigned: 0,
-    totalAttempted: 0,
-    averageScore: 0,
-    passRate: 0,
+  const [stats, setStats] = useState<StudentStatsSummary>({
+    totalAttempts: 0,
+    averagePercentage: 0,
+    quizzesPassed: 0,
+    quizzesFailed: 0,
   });
   const [upcomingQuizzes, setUpcomingQuizzes] = useState<AssignedQuiz[]>([]);
   const [recentAttempts, setRecentAttempts] = useState<AttemptSummary[]>([]);
@@ -32,17 +32,17 @@ export default function OverviewPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsData, quizzesData, attemptsData] = await Promise.all([
-          api.get<StudentStats>("/exam/stats"),
-          api.get<PaginatedAssignedQuizzes>(
+        const [statsResp, quizzesData, attemptsData] = await Promise.all([
+          api.get<StudentStatsResponse>("/exam/my-stats"),
+          api.get<AssignedQuiz[]>(
             "/exam/quizzes?availability=ACTIVE&limit=5&sortBy=startTime:asc",
           ),
           api.get<PaginatedAttempts>(
             "/exam/attempts?limit=5&sortBy=submittedAt:desc",
           ),
         ]);
-        setStats(statsData);
-        setUpcomingQuizzes(quizzesData.quizzes);
+        setStats(statsResp.summary);
+        setUpcomingQuizzes(quizzesData);
         setRecentAttempts(attemptsData.attempts);
       } catch {
         // Keep defaults
@@ -69,26 +69,26 @@ export default function OverviewPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Quizzes Assigned"
-          value={stats.totalAssigned}
+          label="Total Attempts"
+          value={stats.totalAttempts}
           icon={ClipboardList}
           isLoading={isLoading}
         />
         <StatCard
-          label="Quizzes Attempted"
-          value={stats.totalAttempted}
+          label="Quizzes Passed"
+          value={stats.quizzesPassed}
           icon={CheckCircle2}
           isLoading={isLoading}
         />
         <StatCard
-          label="Average Score %"
-          value={Math.round(stats.averageScore)}
+          label="Average %"
+          value={Math.round(stats.averagePercentage)}
           icon={TrendingUp}
           isLoading={isLoading}
         />
         <StatCard
-          label="Pass Rate %"
-          value={Math.round(stats.passRate)}
+          label="Quizzes Failed"
+          value={stats.quizzesFailed}
           icon={Award}
           isLoading={isLoading}
         />
@@ -150,11 +150,13 @@ export default function OverviewPage() {
                     </Badge>
                   </div>
                 </div>
-                {quiz.canAttempt && (
+                {quiz.canAttempt !== false && (
                   <Button
                     size="sm"
                     onClick={() =>
-                      navigate(`/student/quizzes/${quiz.id}/attempt`)
+                      navigate(`/student/quizzes/${quiz.id}/attempt`, {
+                        state: { quizTitle: quiz.title, durationMinutes: quiz.durationMinutes },
+                      })
                     }
                   >
                     Start Quiz
@@ -193,9 +195,11 @@ export default function OverviewPage() {
                 <div key={attempt.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-display font-semibold text-sm truncate">{attempt.quizTitle}</h4>
-                    <Badge variant={attempt.passed ? "default" : "destructive"} className="text-[10px]">
-                      {attempt.passed ? "PASSED" : "FAILED"}
-                    </Badge>
+                    {attempt.passed != null && (
+                      <Badge variant={attempt.passed ? "default" : "destructive"} className="text-[10px]">
+                        {attempt.passed ? "PASSED" : "FAILED"}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">

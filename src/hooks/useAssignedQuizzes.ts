@@ -2,9 +2,25 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type {
   AssignedQuiz,
-  PaginatedAssignedQuizzes,
   QuizAvailability,
 } from "@/types/student";
+function computeAvailability(quiz: AssignedQuiz): QuizAvailability {
+  const now = Date.now();
+  if (quiz.startTime && new Date(quiz.startTime).getTime() > now) return "UPCOMING";
+  if (quiz.endTime && new Date(quiz.endTime).getTime() < now) return "ENDED";
+  return "ACTIVE";
+}
+
+function enrichQuiz(quiz: AssignedQuiz): AssignedQuiz {
+  const avail = quiz.availability ?? computeAvailability(quiz);
+  return {
+    ...quiz,
+    availability: avail,
+    canAttempt: quiz.canAttempt ?? avail === "ACTIVE",
+    attemptCount: quiz.attemptCount ?? 0,
+    lastAttemptStatus: quiz.lastAttemptStatus ?? null,
+  };
+}
 
 export function useAssignedQuizzes(initialLimit = 10) {
   const [quizzes, setQuizzes] = useState<AssignedQuiz[]>([]);
@@ -31,12 +47,18 @@ export function useAssignedQuizzes(initialLimit = 10) {
       if (search) params.set("search", search);
       params.set("sortBy", "startTime:asc");
 
-      const data = await api.get<PaginatedAssignedQuizzes>(
+      const data = await api.get<AssignedQuiz[]>(
         `/exam/quizzes?${params}`,
       );
-      setQuizzes(data.quizzes);
-      setTotalPages(data.totalPages);
-      setTotalResults(data.totalResults);
+      // Backend returns a plain array; enrich with computed fields
+      const enriched = data.map(enrichQuiz);
+      // Client-side availability filter (backend may not support it)
+      const filtered = availability
+        ? enriched.filter((q) => q.availability === availability)
+        : enriched;
+      setQuizzes(filtered);
+      setTotalPages(1);
+      setTotalResults(filtered.length);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch quizzes",

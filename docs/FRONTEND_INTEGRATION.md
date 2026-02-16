@@ -215,6 +215,20 @@ api.interceptors.response.use(
 - Expired attempts cannot be submitted. If a student tries to submit an expired attempt, they will receive a `400` error.
 - Frontend should implement a countdown timer based on the quiz duration and warn the user before time runs out.
 
+**Step 5: Review Past Attempts**
+- `GET /v1/exam/attempts` — List all own attempts with pagination and sorting (e.g., `?sortBy=submittedAt:desc`)
+- `GET /v1/exam/attempts/:attemptId` — View a single attempt's full details including responses and scores
+
+**Step 6: View Performance Stats**
+- `GET /v1/exam/my-stats` — Get overall performance summary (total attempts, average percentage, pass/fail counts) and detailed per-quiz history
+
+**Step 7: View Enrolled Classes**
+- `GET /v1/classes` — Students see only classes they are enrolled in
+
+**Step 8: View/Update Profile**
+- `GET /v1/auth/me` — Get own profile
+- `PATCH /v1/auth/me` — Update name, email, or password
+
 ---
 
 ## 6. Workflow: Lecturer Managing Quizzes
@@ -258,7 +272,7 @@ Requirements: quiz must have questions AND startTime/endTime set.
 After students submit quizzes containing subjective questions, lecturers must manually grade those answers.
 
 **Step 1: Identify Attempts with Pending Grading**
-- Use existing attempt listing endpoints and filter for attempts where `pendingGrading` is `true`.
+- Use `GET /v1/exam/attempts?status=SUBMITTED` to list submitted attempts. Lecturers will only see attempts for quizzes they created; admins see all.
 
 **Step 2: Review and Grade**
 - `POST /v1/exam/attempts/:attemptId/grade`

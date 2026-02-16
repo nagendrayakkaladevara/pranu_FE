@@ -41,7 +41,9 @@ export default function MyQuizzesPage() {
 
   const handleStartQuiz = useCallback(
     (quiz: AssignedQuiz) => {
-      navigate(`/student/quizzes/${quiz.id}/attempt`);
+      navigate(`/student/quizzes/${quiz.id}/attempt`, {
+        state: { quizTitle: quiz.title, durationMinutes: quiz.durationMinutes },
+      });
     },
     [navigate],
   );

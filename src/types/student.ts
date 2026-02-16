@@ -1,5 +1,5 @@
 import type { PaginationMeta } from "./admin";
-import type { AttemptStatus, Quiz, Question, QuestionOption, QuestionType } from "./lecturer";
+import type { AttemptStatus, Quiz, QuestionType } from "./lecturer";
 
 // ── Quiz Availability ────────────────────────────────────────
 
@@ -8,14 +8,10 @@ export type QuizAvailability = "UPCOMING" | "ACTIVE" | "ENDED";
 // ── Assigned Quiz ────────────────────────────────────────────
 
 export interface AssignedQuiz extends Quiz {
-  attemptCount: number;
-  lastAttemptStatus: AttemptStatus | null;
-  canAttempt: boolean;
-  availability: QuizAvailability;
-}
-
-export interface PaginatedAssignedQuizzes extends PaginationMeta {
-  quizzes: AssignedQuiz[];
+  attemptCount?: number;
+  lastAttemptStatus?: AttemptStatus | null;
+  canAttempt?: boolean;
+  availability?: QuizAvailability;
 }
 
 // ── Attempt ──────────────────────────────────────────────────
@@ -69,15 +65,37 @@ export interface AttemptDetail {
 
 // ── Result ───────────────────────────────────────────────────
 
-export interface QuestionResult {
-  question: Pick<Question, "id" | "text" | "marks">;
-  options: QuestionOption[];
-  selectedOptionId: string | null;
-  correctOptionId: string;
-  isCorrect: boolean;
-  marksAwarded: number;
+// Backend response shape from GET /exam/attempts/:id
+export interface BackendAttemptDetail {
+  id: string;
+  quiz: {
+    id: string;
+    title: string;
+    totalMarks: number;
+    passMarks: number;
+    durationMinutes: number;
+  };
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  status: AttemptStatus;
+  score: number;
+  startTime: string;
+  endTime: string | null;
+  responses: Array<{
+    questionId: string;
+    selectedOptionId?: string;
+    textAnswer?: string;
+    isGraded?: boolean;
+    awardedMarks?: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// UI-friendly result shape
 export interface AttemptResult {
   id: string;
   quizTitle: string;
@@ -85,15 +103,52 @@ export interface AttemptResult {
   score: number;
   totalMarks: number;
   passMarks: number;
-  passed: boolean;
+  passed: boolean | null;
   startTime: string;
-  endTime: string;
+  endTime: string | null;
   timeTaken: number; // seconds
-  questions: QuestionResult[];
+  totalResponses: number;
+  gradedResponses: number;
+  pendingGrading: boolean;
 }
 
 // ── Attempt History ──────────────────────────────────────────
 
+// Backend response shape from GET /exam/attempts
+export interface BackendAttemptItem {
+  id: string;
+  quiz: {
+    id: string;
+    title: string;
+    totalMarks: number;
+    passMarks: number;
+    durationMinutes: number;
+  };
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  status: AttemptStatus;
+  score: number;
+  startTime: string;
+  endTime: string | null;
+  responses: Array<{
+    questionId: string;
+    selectedOptionId?: string;
+    textAnswer?: string;
+    isGraded?: boolean;
+    awardedMarks?: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginatedBackendAttempts extends PaginationMeta {
+  attempts: BackendAttemptItem[];
+}
+
+// UI-friendly flattened shape used by components
 export interface AttemptSummary {
   id: string;
   quizId: string;
@@ -101,10 +156,10 @@ export interface AttemptSummary {
   status: AttemptStatus;
   score: number;
   totalMarks: number;
-  passed: boolean;
+  passMarks: number;
+  passed: boolean | null;
   timeTaken: number; // seconds
   submittedAt: string;
-  resultVisible?: boolean;
 }
 
 export interface PaginatedAttempts extends PaginationMeta {
@@ -113,11 +168,27 @@ export interface PaginatedAttempts extends PaginationMeta {
 
 // ── Student Stats ────────────────────────────────────────────
 
-export interface StudentStats {
-  totalAssigned: number;
-  totalAttempted: number;
-  averageScore: number;
-  passRate: number;
+export interface StudentStatsSummary {
+  totalAttempts: number;
+  averagePercentage: number;
+  quizzesPassed: number;
+  quizzesFailed: number;
+}
+
+export interface StudentStatsAttempt {
+  id: string;
+  quizTitle: string;
+  score: number;
+  totalMarks: number;
+  percentage: number;
+  passed: boolean | null;
+  date: string;
+}
+
+export interface StudentStatsResponse {
+  student: { id: string; name: string; email: string };
+  summary: StudentStatsSummary;
+  attempts: StudentStatsAttempt[];
 }
 
 // ── Payloads ─────────────────────────────────────────────────

@@ -1,10 +1,11 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Send, Bookmark, BookmarkCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import type {
   AttemptDetail,
+  AssignedQuiz,
   SubmitAttemptPayload,
   StartAttemptResponse,
 } from "@/types/student";
@@ -20,6 +21,8 @@ import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 export default function QuizTakerPage() {
   const { id: quizId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { quizTitle?: string; durationMinutes?: number } | null;
 
   const [attempt, setAttempt] = useState<AttemptDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,31 +45,49 @@ export default function QuizTakerPage() {
       setIsLoading(true);
       setError(null);
       try {
+        // Fetch quiz details for title & duration (if not passed via router state)
+        let quizTitle = locationState?.quizTitle ?? "";
+        let durationMinutes = locationState?.durationMinutes ?? 0;
+
+        if (!quizTitle || !durationMinutes) {
+          try {
+            const quizList = await api.get<AssignedQuiz[]>(
+              `/exam/quizzes`,
+            );
+            const quiz = quizList.find((q: AssignedQuiz) => q.id === quizId);
+            if (quiz) {
+              quizTitle = quizTitle || quiz.title;
+              durationMinutes = durationMinutes || quiz.durationMinutes;
+            }
+          } catch {
+            // Non-critical: continue without quiz info
+          }
+        }
+
         const data = await api.post<StartAttemptResponse>(
           `/exam/quizzes/${quizId}/start`,
           {},
         );
-        // Map backend response to AttemptDetail for UI
         const detail: AttemptDetail = {
           id: data.attempt.id,
           quizId: data.attempt.quiz,
-          quizTitle: "", // Not returned by start endpoint; set from quiz list
+          quizTitle,
           status: data.attempt.status,
-          durationMinutes: 0, // Will be computed from quiz settings
+          durationMinutes,
           startTime: data.attempt.startTime,
           endTime: null,
           questions: data.questions,
           answers: data.attempt.responses ?? [],
         };
         setAttempt(detail);
-        // Restore from sessionStorage first, then from API
-        const saved = sessionStorage.getItem(`quiz_answers_${quizId}`);
+        // Restore from localStorage first, then from API
+        const saved = localStorage.getItem(`quiz_answers_${quizId}`);
         if (saved) {
           try {
             const parsed: [string, string][] = JSON.parse(saved);
             setAnswers(new Map(parsed));
           } catch {
-            sessionStorage.removeItem(`quiz_answers_${quizId}`);
+            localStorage.removeItem(`quiz_answers_${quizId}`);
           }
         } else if (detail.answers?.length) {
           const restored = new Map<string, string>();
@@ -86,7 +107,7 @@ export default function QuizTakerPage() {
       }
     }
     startAttempt();
-  }, [quizId]);
+  }, [quizId, locationState]);
 
   const currentQuestion = attempt?.questions[currentIndex] ?? null;
   const totalQuestions = attempt?.questions.length ?? 0;
@@ -106,7 +127,7 @@ export default function QuizTakerPage() {
         const next = new Map(prev);
         next.set(currentQuestion.id, optionId);
         try {
-          sessionStorage.setItem(storageKey, JSON.stringify(Array.from(next.entries())));
+          localStorage.setItem(storageKey, JSON.stringify(Array.from(next.entries())));
         } catch { /* quota exceeded — ignore */ }
         return next;
       });
@@ -208,7 +229,7 @@ export default function QuizTakerPage() {
         responses: [...mcqResponses, ...subjectiveResponses],
       };
       await api.post(`/exam/attempts/${attempt.id}/submit`, payload);
-      sessionStorage.removeItem(storageKey);
+      localStorage.removeItem(storageKey);
       navigate("/student/results", { replace: true });
     } catch (err) {
       submittedRef.current = false;

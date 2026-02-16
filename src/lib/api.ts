@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/v1";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/v1";
 
 interface ApiError {
   code: number;
@@ -111,7 +111,7 @@ class ApiClient {
           this.clearTokens();
           toast.error("Session expired. Please log in again.");
           window.location.href = "/login";
-          return new Promise<T>(() => {}); // page is redirecting
+          return new Promise<T>(() => { }); // page is redirecting
         }
       }
 
@@ -119,7 +119,7 @@ class ApiClient {
         this.clearTokens();
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
-        return new Promise<T>(() => {}); // page is redirecting
+        return new Promise<T>(() => { }); // page is redirecting
       }
 
       const error: ApiError = await response.json().catch(() => ({

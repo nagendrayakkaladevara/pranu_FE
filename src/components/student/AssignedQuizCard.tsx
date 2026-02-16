@@ -52,9 +52,9 @@ export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <Badge
           variant="outline"
-          className={AVAILABILITY_CLASSES[quiz.availability] ?? ""}
+          className={quiz.availability ? AVAILABILITY_CLASSES[quiz.availability] ?? "" : ""}
         >
-          {quiz.availability}
+          {quiz.availability ?? "ACTIVE"}
         </Badge>
         {quiz.lastAttemptStatus && (
           <Badge
@@ -78,7 +78,7 @@ export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
             {questionCount} Q{questionCount !== 1 ? "s" : ""}
           </span>
         </div>
-        {quiz.attemptCount > 0 && (
+        {(quiz.attemptCount ?? 0) > 0 && (
           <span className="text-xs">
             {quiz.attemptCount} attempt{quiz.attemptCount !== 1 ? "s" : ""}
           </span>
@@ -100,7 +100,7 @@ export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
         )}
       </div>
 
-      {quiz.canAttempt && quiz.availability === "ACTIVE" && (
+      {(quiz.canAttempt !== false) && quiz.availability === "ACTIVE" && (
         <Button className="w-full" onClick={() => onStartQuiz(quiz)}>
           Start Quiz
         </Button>

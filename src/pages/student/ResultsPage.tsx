@@ -5,9 +5,8 @@ import type { AttemptSummary } from "@/types/student";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Trophy, Clock, Target } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Target, AlertCircle } from "lucide-react";
 import { AttemptsTable } from "@/components/student/AttemptsTable";
-import { AttemptResultCard } from "@/components/student/AttemptResultCard";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 
 export default function ResultsPage() {
@@ -117,17 +116,18 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Per-question results */}
-        <div>
-          <h3 className="font-display text-lg font-semibold mb-4">
-            Question Breakdown
-          </h3>
-          <div className="space-y-4">
-            {result.questions.map((qr, i) => (
-              <AttemptResultCard key={qr.question.id} result={qr} index={i} />
-            ))}
+        {/* Grading status */}
+        {result.pendingGrading && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-center gap-3">
+            <AlertCircle className="size-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-400">Grading in progress</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Some responses are still being graded. Your score may update once all grading is complete.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }

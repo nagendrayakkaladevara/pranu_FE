@@ -115,7 +115,7 @@ export function LecturerSidebar() {
                 logout();
                 navigate("/login");
               }}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive bg-[#FFA6A6]"
             >
               <LogOut className="size-4" />
               <span>Logout</span>

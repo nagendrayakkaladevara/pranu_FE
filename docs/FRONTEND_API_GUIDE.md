@@ -7,11 +7,14 @@ Complete API reference for the frontend team. All endpoints are prefixed with `/
 ## Table of Contents
 
 - [Authentication](#authentication)
+- [Profile (All Roles)](#profile-all-roles)
 - [Users (Admin)](#users-admin-only)
 - [Classes](#classes)
 - [Questions (Lecturer/Admin)](#questions-lectureadmin)
 - [Quizzes (Lecturer/Admin)](#quizzes-lectureadmin)
 - [Exam (Student)](#exam-student-only)
+- [Student Stats](#student-stats)
+- [Attempts (All Roles)](#attempts-all-roles)
 - [Grading (Lecturer/Admin)](#grading-lectureadmin)
 - [Analytics (Lecturer/Admin)](#analytics-lectureadmin)
 - [Data Models](#data-models)
@@ -156,7 +159,44 @@ Get new access and refresh tokens using a valid refresh token. No auth required.
 4. Replace both stored tokens with the new ones from the response.
 5. On logout, call `/v1/auth/logout` with the refresh token and clear stored tokens.
 
-> **Note:** Auth endpoints have stricter rate limiting (20 requests per 15 minutes). See [Rate Limiting](#rate-limiting).
+> **Note:** Auth endpoints (register, login, logout, refresh) have stricter rate limiting (20 requests per 15 minutes). The `/me` endpoints use standard rate limiting. See [Rate Limiting](#rate-limiting).
+
+---
+
+## Profile (All Roles)
+
+Self-service profile endpoints for any authenticated user.
+
+### GET /v1/auth/me
+
+**Auth:** Any authenticated user
+
+Get the logged-in user's profile.
+
+**Response** `200`: User object (same shape as register response's `user` field).
+
+### PATCH /v1/auth/me
+
+**Auth:** Any authenticated user
+
+Update the logged-in user's own profile. Users cannot change their own role.
+
+**Body** (at least one field):
+```json
+{
+  "name": "New Name",
+  "email": "newemail@example.com",
+  "password": "newpassword123"
+}
+```
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `name` | string | No | |
+| `email` | string | No | Valid email format, must be unique |
+| `password` | string | No | Min 8 characters |
+
+**Response** `200`: Updated user object.
 
 ---
 
@@ -262,7 +302,9 @@ Soft-deletes the user. The user record is not physically removed from the databa
 **Response** `201`: Class object.
 
 ### GET /v1/classes
-**Auth:** ADMIN or LECTURER
+**Auth:** ADMIN, LECTURER, or STUDENT
+
+> **Role-based filtering:** Students only see classes they are enrolled in. Admins and Lecturers see all classes.
 
 **Query Parameters:**
 
@@ -465,6 +507,8 @@ Creates a quiz in `DRAFT` status.
 **Response** `201`: Quiz object.
 
 ### GET /v1/quizzes
+
+> **Role-based filtering:** Lecturers see only quizzes they created. Admins see all quizzes.
 
 **Query Parameters:**
 
@@ -687,6 +731,152 @@ Submit answers for a quiz attempt. Supports both MCQ and SUBJECTIVE question typ
 ```
 
 The `pendingGrading` flag is `true` when the quiz contains SUBJECTIVE questions that still need to be graded by a lecturer or admin. The `score` reflects only the MCQ questions scored so far; it will update once subjective questions are graded.
+
+---
+
+## Student Stats
+
+### GET /v1/exam/my-stats
+
+**Auth:** STUDENT only
+
+Get the logged-in student's own performance summary and attempt history across all quizzes.
+
+**Response** `200`:
+```json
+{
+  "student": {
+    "id": "665g...",
+    "name": "Student Name",
+    "email": "student@example.com"
+  },
+  "summary": {
+    "totalAttempts": 5,
+    "averagePercentage": 76.40,
+    "quizzesPassed": 4,
+    "quizzesFailed": 1
+  },
+  "attempts": [
+    {
+      "id": "665f...",
+      "quizTitle": "Math Quiz 1",
+      "score": 8,
+      "totalMarks": 10,
+      "percentage": 80.00,
+      "passed": true,
+      "date": "2026-03-01T10:45:00.000Z"
+    }
+  ]
+}
+```
+
+Attempts are sorted by date (most recent first). `passed` is `null` if the quiz has no `passMarks` set.
+
+---
+
+## Attempts (All Roles)
+
+### GET /v1/exam/attempts
+
+**Auth:** STUDENT, LECTURER, or ADMIN
+
+**Role-based scoping:**
+- **STUDENT**: sees only their own attempts
+- **LECTURER**: sees attempts for quizzes they created
+- **ADMIN**: sees all attempts
+
+**Query Parameters:**
+
+| Param | Type | Notes |
+| :--- | :--- | :--- |
+| `page` | number | Default: 1 |
+| `limit` | number | Default: 10 |
+| `sortBy` | string | Format: `field:asc` or `field:desc` (e.g., `submittedAt:desc`) |
+| `quizId` | string | Filter by quiz ID |
+| `studentId` | string | Filter by student ID (LECTURER/ADMIN only, ignored for STUDENT) |
+| `status` | string | `STARTED`, `SUBMITTED`, `EXPIRED` |
+
+**Response** `200`:
+```json
+{
+  "attempts": [
+    {
+      "id": "665f...",
+      "quiz": {
+        "id": "665a...",
+        "title": "Math Quiz 1",
+        "totalMarks": 10,
+        "passMarks": 5,
+        "durationMinutes": 30
+      },
+      "student": {
+        "id": "665g...",
+        "name": "Student Name",
+        "email": "student@example.com"
+      },
+      "status": "SUBMITTED",
+      "score": 8,
+      "startTime": "2026-03-01T09:05:00.000Z",
+      "endTime": "2026-03-01T09:35:00.000Z",
+      "responses": [ ... ],
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ],
+  "page": 1,
+  "limit": 10,
+  "totalPages": 3,
+  "totalResults": 25
+}
+```
+
+### GET /v1/exam/attempts/:attemptId
+
+**Auth:** STUDENT, LECTURER, or ADMIN
+
+Get a single attempt by ID with populated quiz and student details.
+
+**Role-based access:**
+- **STUDENT**: can only view their own attempts
+- **LECTURER**: can only view attempts for quizzes they created
+- **ADMIN**: can view any attempt
+
+**Response** `200`:
+```json
+{
+  "id": "665f...",
+  "quiz": {
+    "id": "665a...",
+    "title": "Math Quiz 1",
+    "totalMarks": 10,
+    "passMarks": 5,
+    "durationMinutes": 30
+  },
+  "student": {
+    "id": "665g...",
+    "name": "Student Name",
+    "email": "student@example.com"
+  },
+  "status": "SUBMITTED",
+  "score": 8,
+  "startTime": "2026-03-01T09:05:00.000Z",
+  "endTime": "2026-03-01T09:35:00.000Z",
+  "responses": [
+    {
+      "questionId": "665b...",
+      "selectedOptionId": "665c02...",
+      "isGraded": true,
+      "awardedMarks": 1
+    }
+  ],
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+**Errors:**
+- `403` "You can only view your own attempts" (STUDENT accessing another student's attempt)
+- `403` "You can only view attempts for your own quizzes" (LECTURER accessing another lecturer's quiz attempt)
 
 ---
 

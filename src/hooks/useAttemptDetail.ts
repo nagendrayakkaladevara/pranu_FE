@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import type { AttemptDetail, AttemptResult } from "@/types/student";
+import type { AttemptDetail, AttemptResult, BackendAttemptDetail } from "@/types/student";
 
 export function useAttemptDetail(attemptId: string | undefined) {
   const [attempt, setAttempt] = useState<AttemptDetail | null>(null);
@@ -47,10 +47,31 @@ export function useAttemptResult(attemptId: string | undefined) {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.get<AttemptResult>(
-        `/exam/attempts/${attemptId}/result`,
+      const data = await api.get<BackendAttemptDetail>(
+        `/exam/attempts/${attemptId}`,
       );
-      setResult(data);
+
+      const startMs = new Date(data.startTime).getTime();
+      const endMs = data.endTime ? new Date(data.endTime).getTime() : Date.now();
+      const timeTaken = Math.round((endMs - startMs) / 1000);
+      const passed = data.quiz.passMarks != null ? data.score >= data.quiz.passMarks : null;
+      const gradedResponses = data.responses.filter((r) => r.isGraded).length;
+
+      setResult({
+        id: data.id,
+        quizTitle: data.quiz.title,
+        status: data.status,
+        score: data.score,
+        totalMarks: data.quiz.totalMarks,
+        passMarks: data.quiz.passMarks,
+        passed,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        timeTaken,
+        totalResponses: data.responses.length,
+        gradedResponses,
+        pendingGrading: gradedResponses < data.responses.length,
+      });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch result",

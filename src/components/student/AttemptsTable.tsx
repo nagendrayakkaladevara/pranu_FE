@@ -60,15 +60,12 @@ export function AttemptsTable({ attempts, onViewResult }: AttemptsTableProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{formatDate(attempt.submittedAt)}</span>
-            {(attempt.status === "SUBMITTED" || attempt.status === "EXPIRED") &&
-              (attempt.resultVisible !== false ? (
+            {(attempt.status === "SUBMITTED" || attempt.status === "EXPIRED") && (
                 <Button variant="ghost" size="sm" onClick={() => onViewResult(attempt)}>
                   <Eye className="size-4 mr-1" />
                   View
                 </Button>
-              ) : (
-                <span className="text-xs text-muted-foreground">Results not yet available</span>
-              ))}
+              )}
           </div>
         </div>
       ))}
@@ -115,8 +112,7 @@ export function AttemptsTable({ attempts, onViewResult }: AttemptsTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 {(attempt.status === "SUBMITTED" ||
-                  attempt.status === "EXPIRED") &&
-                  (attempt.resultVisible !== false ? (
+                  attempt.status === "EXPIRED") && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -125,11 +121,7 @@ export function AttemptsTable({ attempts, onViewResult }: AttemptsTableProps) {
                       <Eye className="size-4 mr-1" />
                       View
                     </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">
-                      Results not yet available
-                    </span>
-                  ))}
+                  )}
               </TableCell>
             </TableRow>
           ))}

@@ -401,6 +401,55 @@
       ]
     },
     {
+      "name": "Profile (All Roles)",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "me"]
+            },
+            "description": "Get the logged-in user's profile. Works for any authenticated user (STUDENT, LECTURER, ADMIN)."
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "me"]
+            },
+            "description": "Update the logged-in user's profile. Can update name, email, and password. Cannot change role."
+          }
+        }
+      ]
+    },
+    {
       "name": "Users (Admin Only)",
       "item": [
         {
@@ -1222,6 +1271,78 @@
               "path": ["v1", "exam", "attempts", "{{attemptId}}", "grade"]
             },
             "description": "Grade subjective responses for a submitted attempt. Lecturer/Admin only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attempts (All Roles)",
+      "item": [
+        {
+          "name": "List Attempts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/exam/attempts?page=1&limit=10&sortBy=submittedAt:desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "exam", "attempts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "sortBy", "value": "submittedAt:desc" },
+                { "key": "quizId", "value": "{{quizId}}", "disabled": true },
+                { "key": "studentId", "value": "{{studentId}}", "disabled": true },
+                { "key": "status", "value": "SUBMITTED", "disabled": true }
+              ]
+            },
+            "description": "List quiz attempts with pagination. Scoped by role: Students see own attempts, Lecturers see attempts for their quizzes, Admins see all."
+          }
+        },
+        {
+          "name": "Get Attempt by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/exam/attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "exam", "attempts", "{{attemptId}}"]
+            },
+            "description": "Get a single attempt by ID. Students can only view their own, Lecturers their quiz attempts, Admins can view any."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Student Stats",
+      "item": [
+        {
+          "name": "Get My Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/exam/my-stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "exam", "my-stats"]
+            },
+            "description": "Get the logged-in student's performance summary: total attempts, average percentage, quizzes passed/failed, and detailed attempt history."
           }
         }
       ]

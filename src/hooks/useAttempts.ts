@@ -2,11 +2,32 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type {
   AttemptSummary,
-  PaginatedAttempts,
+  BackendAttemptItem,
+  PaginatedBackendAttempts,
   StartAttemptResponse,
   SubmitAttemptPayload,
   SubmitAttemptResponse,
 } from "@/types/student";
+
+function mapAttemptToSummary(item: BackendAttemptItem): AttemptSummary {
+  const startMs = new Date(item.startTime).getTime();
+  const endMs = item.endTime ? new Date(item.endTime).getTime() : Date.now();
+  const timeTaken = Math.round((endMs - startMs) / 1000);
+  const passed = item.quiz.passMarks != null ? item.score >= item.quiz.passMarks : null;
+
+  return {
+    id: item.id,
+    quizId: item.quiz.id,
+    quizTitle: item.quiz.title,
+    status: item.status,
+    score: item.score,
+    totalMarks: item.quiz.totalMarks,
+    passMarks: item.quiz.passMarks,
+    passed,
+    timeTaken,
+    submittedAt: item.endTime ?? item.updatedAt,
+  };
+}
 
 export function useAttempts(quizId?: string, initialLimit = 10) {
   const [attempts, setAttempts] = useState<AttemptSummary[]>([]);
@@ -28,10 +49,10 @@ export function useAttempts(quizId?: string, initialLimit = 10) {
       if (quizId) params.set("quizId", quizId);
       params.set("sortBy", "submittedAt:desc");
 
-      const data = await api.get<PaginatedAttempts>(
+      const data = await api.get<PaginatedBackendAttempts>(
         `/exam/attempts?${params}`,
       );
-      setAttempts(data.attempts);
+      setAttempts(data.attempts.map(mapAttemptToSummary));
       setTotalPages(data.totalPages);
       setTotalResults(data.totalResults);
     } catch (err) {
