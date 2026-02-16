@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import type {
   AttemptDetail,
   SubmitAttemptPayload,
+  StartAttemptResponse,
 } from "@/types/student";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,7 @@ export default function QuizTakerPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
+  const [textAnswers, setTextAnswers] = useState<Map<string, string>>(new Map());
   const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,10 +42,23 @@ export default function QuizTakerPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await api.post<AttemptDetail>("/student/attempts", {
-          quizId,
-        });
-        setAttempt(data);
+        const data = await api.post<StartAttemptResponse>(
+          `/exam/quizzes/${quizId}/start`,
+          {},
+        );
+        // Map backend response to AttemptDetail for UI
+        const detail: AttemptDetail = {
+          id: data.attempt.id,
+          quizId: data.attempt.quiz,
+          quizTitle: "", // Not returned by start endpoint; set from quiz list
+          status: data.attempt.status,
+          durationMinutes: 0, // Will be computed from quiz settings
+          startTime: data.attempt.startTime,
+          endTime: null,
+          questions: data.questions,
+          answers: data.attempt.responses ?? [],
+        };
+        setAttempt(detail);
         // Restore from sessionStorage first, then from API
         const saved = sessionStorage.getItem(`quiz_answers_${quizId}`);
         if (saved) {
@@ -53,10 +68,12 @@ export default function QuizTakerPage() {
           } catch {
             sessionStorage.removeItem(`quiz_answers_${quizId}`);
           }
-        } else if (data.answers?.length) {
+        } else if (detail.answers?.length) {
           const restored = new Map<string, string>();
-          for (const a of data.answers) {
-            restored.set(a.questionId, a.selectedOptionId);
+          for (const a of detail.answers) {
+            if (a.selectedOptionId) {
+              restored.set(a.questionId, a.selectedOptionId);
+            }
           }
           setAnswers(restored);
         }
@@ -78,8 +95,8 @@ export default function QuizTakerPage() {
     [attempt],
   );
   const answeredSet = useMemo(
-    () => new Set(answers.keys()),
-    [answers],
+    () => new Set([...answers.keys(), ...textAnswers.keys()]),
+    [answers, textAnswers],
   );
 
   const handleSelectOption = useCallback(
@@ -95,6 +112,22 @@ export default function QuizTakerPage() {
       });
     },
     [currentQuestion, storageKey],
+  );
+
+  const handleTextAnswer = useCallback(
+    (text: string) => {
+      if (!currentQuestion) return;
+      setTextAnswers((prev) => {
+        const next = new Map(prev);
+        if (text) {
+          next.set(currentQuestion.id, text);
+        } else {
+          next.delete(currentQuestion.id);
+        }
+        return next;
+      });
+    },
+    [currentQuestion],
   );
 
   const handlePrev = useCallback(() => {
@@ -159,15 +192,22 @@ export default function QuizTakerPage() {
     setIsSubmitting(true);
 
     try {
+      const mcqResponses = Array.from(answers.entries()).map(
+        ([questionId, selectedOptionId]) => ({
+          questionId,
+          selectedOptionId,
+        }),
+      );
+      const subjectiveResponses = Array.from(textAnswers.entries()).map(
+        ([questionId, textAnswer]) => ({
+          questionId,
+          textAnswer,
+        }),
+      );
       const payload: SubmitAttemptPayload = {
-        answers: Array.from(answers.entries()).map(
-          ([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          }),
-        ),
+        responses: [...mcqResponses, ...subjectiveResponses],
       };
-      await api.post(`/student/attempts/${attempt.id}/submit`, payload);
+      await api.post(`/exam/attempts/${attempt.id}/submit`, payload);
       sessionStorage.removeItem(storageKey);
       navigate("/student/results", { replace: true });
     } catch (err) {
@@ -179,7 +219,7 @@ export default function QuizTakerPage() {
       setIsSubmitting(false);
       setShowSubmitDialog(false);
     }
-  }, [attempt, answers, navigate, storageKey]);
+  }, [attempt, answers, textAnswers, navigate, storageKey]);
 
   const handleTimerExpired = useCallback(() => {
     doSubmit();
@@ -243,6 +283,8 @@ export default function QuizTakerPage() {
               totalQuestions={totalQuestions}
               selectedOptionId={answers.get(currentQuestion.id) ?? null}
               onSelectOption={handleSelectOption}
+              textAnswer={textAnswers.get(currentQuestion.id)}
+              onTextAnswerChange={handleTextAnswer}
             />
           )}
 

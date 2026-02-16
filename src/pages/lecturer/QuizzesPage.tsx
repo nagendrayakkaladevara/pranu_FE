@@ -53,7 +53,6 @@ export default function QuizzesPage() {
     createQuiz,
     updateQuiz,
     deleteQuiz,
-    cloneQuiz,
     refetch,
   } = useQuizzes({ status: initialStatus, search: initialSearch, page: initialPage });
 
@@ -95,18 +94,6 @@ export default function QuizzesPage() {
       navigate(`/lecturer/quizzes/${quiz.id}`);
     },
     [navigate],
-  );
-
-  const handleClone = useCallback(
-    async (quiz: Quiz) => {
-      try {
-        await cloneQuiz(quiz.id);
-        toast.success("Quiz duplicated");
-      } catch {
-        toast.error("Failed to duplicate quiz");
-      }
-    },
-    [cloneQuiz],
   );
 
   const handleFormSubmit = useCallback(
@@ -204,7 +191,6 @@ export default function QuizzesPage() {
                 onEdit={handleEdit}
                 onDelete={setDeleteTarget}
                 onView={handleView}
-                onClone={handleClone}
               />
             ))}
           </div>

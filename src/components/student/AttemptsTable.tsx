@@ -12,9 +12,9 @@ import {
 import type { AttemptSummary } from "@/types/student";
 
 const STATUS_CLASSES: Record<string, string> = {
-  IN_PROGRESS: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  COMPLETED: "bg-green-500/15 text-green-400 border-green-500/30",
-  TIMED_OUT: "bg-red-500/15 text-red-400 border-red-500/30",
+  STARTED: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  SUBMITTED: "bg-green-500/15 text-green-400 border-green-500/30",
+  EXPIRED: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
 interface AttemptsTableProps {
@@ -60,7 +60,7 @@ export function AttemptsTable({ attempts, onViewResult }: AttemptsTableProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{formatDate(attempt.submittedAt)}</span>
-            {(attempt.status === "COMPLETED" || attempt.status === "TIMED_OUT") &&
+            {(attempt.status === "SUBMITTED" || attempt.status === "EXPIRED") &&
               (attempt.resultVisible !== false ? (
                 <Button variant="ghost" size="sm" onClick={() => onViewResult(attempt)}>
                   <Eye className="size-4 mr-1" />
@@ -114,8 +114,8 @@ export function AttemptsTable({ attempts, onViewResult }: AttemptsTableProps) {
                 {formatDate(attempt.submittedAt)}
               </TableCell>
               <TableCell className="text-right">
-                {(attempt.status === "COMPLETED" ||
-                  attempt.status === "TIMED_OUT") &&
+                {(attempt.status === "SUBMITTED" ||
+                  attempt.status === "EXPIRED") &&
                   (attempt.resultVisible !== false ? (
                     <Button
                       variant="ghost"

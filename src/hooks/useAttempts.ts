@@ -3,9 +3,9 @@ import { api } from "@/lib/api";
 import type {
   AttemptSummary,
   PaginatedAttempts,
-  StartAttemptPayload,
+  StartAttemptResponse,
   SubmitAttemptPayload,
-  AttemptDetail,
+  SubmitAttemptResponse,
 } from "@/types/student";
 
 export function useAttempts(quizId?: string, initialLimit = 10) {
@@ -29,7 +29,7 @@ export function useAttempts(quizId?: string, initialLimit = 10) {
       params.set("sortBy", "submittedAt:desc");
 
       const data = await api.get<PaginatedAttempts>(
-        `/student/attempts?${params}`,
+        `/exam/attempts?${params}`,
       );
       setAttempts(data.attempts);
       setTotalPages(data.totalPages);
@@ -47,14 +47,14 @@ export function useAttempts(quizId?: string, initialLimit = 10) {
     fetchAttempts();
   }, [fetchAttempts]);
 
-  const startAttempt = useCallback(async (payload: StartAttemptPayload) => {
-    return api.post<AttemptDetail>("/student/attempts", payload);
+  const startAttempt = useCallback(async (quizId: string) => {
+    return api.post<StartAttemptResponse>(`/exam/quizzes/${quizId}/start`, {});
   }, []);
 
   const submitAttempt = useCallback(
     async (attemptId: string, payload: SubmitAttemptPayload) => {
-      return api.post<{ message: string }>(
-        `/student/attempts/${attemptId}/submit`,
+      return api.post<SubmitAttemptResponse>(
+        `/exam/attempts/${attemptId}/submit`,
         payload,
       );
     },

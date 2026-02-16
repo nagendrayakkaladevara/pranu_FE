@@ -42,8 +42,22 @@ export default function QuizDetailPage() {
     if (!id) return;
     setIsLoading(true);
     try {
-      const data = await api.get<Quiz>(`/quizzes/${id}`);
-      setQuiz(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = await api.get<any>(`/quizzes/${id}`);
+      // Backend wraps questions as { question: {...} } and classes as { class: {...} }
+      // Unwrap them for frontend consumption
+      if (Array.isArray(data.questions)) {
+        data.questions = data.questions.map((q: { question?: Question } | Question | string) =>
+          typeof q === "object" && q !== null && "question" in q ? q.question : q,
+        );
+      }
+      if (Array.isArray(data.assignedClasses)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.assignedClasses = data.assignedClasses.map((c: any) =>
+          typeof c === "object" && c !== null && "class" in c ? c.class.id ?? c.class : c,
+        );
+      }
+      setQuiz(data as Quiz);
     } catch {
       // navigate back on error
     } finally {
@@ -165,7 +179,7 @@ export default function QuizDetailPage() {
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-xs text-muted-foreground mb-1">Pass Marks</p>
-          <p className="font-display font-bold text-lg">{quiz.passMarks}</p>
+          <p className="font-display font-bold text-lg">{quiz.passMarks ?? "—"}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -173,24 +187,6 @@ export default function QuizDetailPage() {
             <span className="text-xs">Questions</span>
           </div>
           <p className="font-display font-bold text-lg">{questions.length}</p>
-        </div>
-      </div>
-
-      <div
-        className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-fade-up"
-        style={{ animationDelay: "0.08s" }}
-      >
-        <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground mb-1">Negative Marks</p>
-          <p className="font-display font-bold text-lg">{quiz.negativeMarks ?? 0}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground mb-1">Max Attempts</p>
-          <p className="font-display font-bold text-lg">{quiz.maxAttempts ?? 1}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground mb-1">Result Visibility</p>
-          <p className="font-display font-bold text-lg text-sm">{quiz.resultVisibility ?? "IMMEDIATE"}</p>
         </div>
       </div>
 

@@ -1,8 +1,15 @@
 import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
-import type { AuthState, LoginCredentials, User, LoginResponse, AuthTokens } from "@/types/auth";
+import type { AuthState, LoginCredentials, User, LoginResponse } from "@/types/auth";
 import { api } from "@/lib/api";
 import { AuthContext } from "./authContextDef";
 import { toast } from "sonner";
+
+function clearAllTokens() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("token_expires");
+  localStorage.removeItem("refresh_token");
+}
 
 function loadStoredUser(): AuthState {
   const storedUser = localStorage.getItem("user");
@@ -18,10 +25,8 @@ function loadStoredUser(): AuthState {
         isLoading: false,
       };
     }
-    // Token expired — clear storage
-    localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_expires");
+    // Access token expired — clear storage
+    clearAllTokens();
   }
 
   return { user: null, isAuthenticated: false, isLoading: false };
@@ -42,22 +47,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const msLeft = new Date(tokenExpiry).getTime() - Date.now();
 
       if (msLeft <= 0) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token_expires");
+        clearAllTokens();
         setState({ user: null, isAuthenticated: false, isLoading: false });
         return;
       }
 
       // Attempt silent refresh 5 minutes before expiry
       if (msLeft <= 5 * 60_000 && !refreshingRef.current) {
+        const refreshToken = localStorage.getItem("refresh_token");
+        if (!refreshToken) return;
         refreshingRef.current = true;
-        api.post<AuthTokens>("/auth/refresh-tokens", {
-          refreshToken: localStorage.getItem("access_token"),
+        api.post<LoginResponse>("/auth/refresh-tokens", {
+          refreshToken,
         })
-          .then((tokens) => {
-            localStorage.setItem("access_token", tokens.access.token);
-            localStorage.setItem("token_expires", tokens.access.expires);
+          .then((data) => {
+            localStorage.setItem("access_token", data.tokens.access.token);
+            localStorage.setItem("token_expires", data.tokens.access.expires);
+            localStorage.setItem("refresh_token", data.tokens.refresh.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
             warnedRef.current = false;
           })
           .catch(() => {
@@ -105,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Persist to localStorage
       localStorage.setItem("access_token", data.tokens.access.token);
       localStorage.setItem("token_expires", data.tokens.access.expires);
+      localStorage.setItem("refresh_token", data.tokens.refresh.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setState({ user: data.user, isAuthenticated: true, isLoading: false });
@@ -116,9 +124,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_expires");
-    localStorage.removeItem("user");
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      // Best-effort server-side token revocation
+      api.post("/auth/logout", { refreshToken }).catch(() => {});
+    }
+    clearAllTokens();
     setState({ user: null, isAuthenticated: false, isLoading: false });
   }, []);
 

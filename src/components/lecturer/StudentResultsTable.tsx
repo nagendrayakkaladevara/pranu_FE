@@ -11,24 +11,20 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_CLASSES: Record<string, string> = {
-  COMPLETED: "bg-green-500/15 text-green-400 border-green-500/30",
-  TIMED_OUT: "bg-red-500/15 text-red-400 border-red-500/30",
-  IN_PROGRESS: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  SUBMITTED: "bg-green-500/15 text-green-400 border-green-500/30",
+  EXPIRED: "bg-red-500/15 text-red-400 border-red-500/30",
+  STARTED: "bg-amber-500/15 text-amber-400 border-amber-500/30",
 };
-
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}m ${secs}s`;
-}
 
 interface StudentResultsTableProps {
   results: QuizAnalyticsResult[];
+  totalMarks?: number;
   isLoading: boolean;
 }
 
 export function StudentResultsTable({
   results,
+  totalMarks,
   isLoading,
 }: StudentResultsTableProps) {
   if (isLoading) {
@@ -58,12 +54,11 @@ export function StudentResultsTable({
             <TableHead>Email</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Time Taken</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {results.map((result) => (
-            <TableRow key={result.student.id}>
+            <TableRow key={result.id}>
               <TableCell className="font-medium">
                 {result.student.name}
               </TableCell>
@@ -71,18 +66,15 @@ export function StudentResultsTable({
                 {result.student.email}
               </TableCell>
               <TableCell>
-                {result.score}/{result.totalMarks}
+                {result.score}{totalMarks != null ? `/${totalMarks}` : ""}
               </TableCell>
               <TableCell>
                 <Badge
                   variant="outline"
                   className={STATUS_CLASSES[result.status] ?? ""}
                 >
-                  {result.status.replace("_", " ")}
+                  {result.status}
                 </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDuration(result.timeTaken)}
               </TableCell>
             </TableRow>
           ))}

@@ -6,7 +6,6 @@ import type {
   Quiz,
   CreateQuizPayload,
   UpdateQuizPayload,
-  ResultVisibility,
 } from "@/types/lecturer";
 import {
   Dialog,
@@ -19,13 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface QuizFormDialogProps {
   open: boolean;
@@ -54,9 +46,6 @@ export function QuizFormDialog({
   const [totalMarks, setTotalMarks] = useState(100);
   const [durationMinutes, setDurationMinutes] = useState(30);
   const [passMarks, setPassMarks] = useState(40);
-  const [negativeMarks, setNegativeMarks] = useState(0);
-  const [maxAttempts, setMaxAttempts] = useState(1);
-  const [resultVisibility, setResultVisibility] = useState<ResultVisibility>("IMMEDIATE");
   const [shuffleQuestions, setShuffleQuestions] = useState(false);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -70,9 +59,6 @@ export function QuizFormDialog({
       setTotalMarks(quiz?.totalMarks ?? 100);
       setDurationMinutes(quiz?.durationMinutes ?? 30);
       setPassMarks(quiz?.passMarks ?? 40);
-      setNegativeMarks(quiz?.negativeMarks ?? 0);
-      setMaxAttempts(quiz?.maxAttempts ?? 1);
-      setResultVisibility(quiz?.resultVisibility ?? "IMMEDIATE");
       setShuffleQuestions(quiz?.shuffleQuestions ?? false);
       setStartTime(toDatetimeLocal(quiz?.startTime));
       setEndTime(toDatetimeLocal(quiz?.endTime));
@@ -87,10 +73,6 @@ export function QuizFormDialog({
     // Validation
     if (passMarks > totalMarks) {
       setError("Pass marks cannot exceed total marks.");
-      return;
-    }
-    if (negativeMarks > totalMarks) {
-      setError("Negative marks cannot exceed total marks.");
       return;
     }
     if (!startTime || !endTime) {
@@ -112,13 +94,10 @@ export function QuizFormDialog({
     try {
       const payload = {
         title,
-        description,
+        description: description || undefined,
         totalMarks,
         durationMinutes,
         passMarks,
-        negativeMarks,
-        maxAttempts,
-        resultVisibility,
         shuffleQuestions,
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
@@ -203,48 +182,6 @@ export function QuizFormDialog({
                 onChange={(e) => setPassMarks(Number(e.target.value))}
                 required
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="quiz-negative">Negative Marks<HelpTip text="Points deducted per wrong answer. Set to 0 for no penalty." /></Label>
-              <Input
-                id="quiz-negative"
-                type="number"
-                min={0}
-                step="0.25"
-                value={negativeMarks}
-                onChange={(e) => setNegativeMarks(Number(e.target.value))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quiz-attempts">Max Attempts<HelpTip text="Maximum number of times a student can attempt this quiz." /></Label>
-              <Input
-                id="quiz-attempts"
-                type="number"
-                min={1}
-                value={maxAttempts}
-                onChange={(e) => setMaxAttempts(Number(e.target.value))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quiz-visibility">Result Visibility<HelpTip text="When students can see their results. Immediate: right after submit. After End: after quiz end time. Manual: only when you release." /></Label>
-              <Select
-                value={resultVisibility}
-                onValueChange={(v) => setResultVisibility(v as ResultVisibility)}
-              >
-                <SelectTrigger id="quiz-visibility">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="IMMEDIATE">Immediate</SelectItem>
-                  <SelectItem value="AFTER_END">After End</SelectItem>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 

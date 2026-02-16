@@ -28,7 +28,7 @@ export function useQuizzes(initialParams?: QuizQueryParams) {
       params.set("page", String(page));
       params.set("limit", String(limit));
       if (status) params.set("status", status);
-      if (search) params.set("search", search);
+      if (search) params.set("title", search);
       params.set("sortBy", "createdAt:desc");
       return api.get<PaginatedQuizzes>(`/quizzes?${params}`);
     },
@@ -75,11 +75,6 @@ export function useQuizzes(initialParams?: QuizQueryParams) {
     onSettled: invalidate,
   });
 
-  const cloneMutation = useMutation({
-    mutationFn: (id: string) => api.post<Quiz>(`/quizzes/${id}/clone`, {}),
-    onSuccess: invalidate,
-  });
-
   const addQuestionsMutation = useMutation({
     mutationFn: ({ quizId, payload }: { quizId: string; payload: AddQuestionsPayload }) =>
       api.post<Quiz>(`/quizzes/${quizId}/questions`, payload),
@@ -108,7 +103,6 @@ export function useQuizzes(initialParams?: QuizQueryParams) {
     updateQuiz: (id: string, payload: UpdateQuizPayload) =>
       updateMutation.mutateAsync({ id, payload }),
     deleteQuiz: (id: string) => deleteMutation.mutateAsync(id),
-    cloneQuiz: (id: string) => cloneMutation.mutateAsync(id),
     getQuizDetail: (id: string) => api.get<Quiz>(`/quizzes/${id}`),
     addQuestions: (quizId: string, payload: AddQuestionsPayload) =>
       addQuestionsMutation.mutateAsync({ quizId, payload }),

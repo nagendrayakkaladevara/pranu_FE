@@ -13,7 +13,7 @@ export function useAttemptDetail(attemptId: string | undefined) {
     setError(null);
     try {
       const data = await api.get<AttemptDetail>(
-        `/student/attempts/${attemptId}`,
+        `/exam/attempts/${attemptId}`,
       );
       setAttempt(data);
     } catch (err) {
@@ -48,7 +48,7 @@ export function useAttemptResult(attemptId: string | undefined) {
     setError(null);
     try {
       const data = await api.get<AttemptResult>(
-        `/student/attempts/${attemptId}/result`,
+        `/exam/attempts/${attemptId}/result`,
       );
       setResult(data);
     } catch (err) {

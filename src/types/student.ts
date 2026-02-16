@@ -1,5 +1,5 @@
 import type { PaginationMeta } from "./admin";
-import type { AttemptStatus, Quiz, Question, QuestionOption } from "./lecturer";
+import type { AttemptStatus, Quiz, Question, QuestionOption, QuestionType } from "./lecturer";
 
 // ── Quiz Availability ────────────────────────────────────────
 
@@ -22,16 +22,39 @@ export interface PaginatedAssignedQuizzes extends PaginationMeta {
 
 export interface AttemptAnswer {
   questionId: string;
-  selectedOptionId: string;
+  selectedOptionId?: string;
+  textAnswer?: string;
+}
+
+export interface ExamQuestionOption {
+  id: string;
+  text: string;
 }
 
 export interface AttemptQuestion {
   id: string;
   text: string;
+  type: QuestionType;
   marks: number;
-  options: Omit<QuestionOption, "isCorrect">[];
+  options: ExamQuestionOption[];
 }
 
+// Backend response from POST /exam/quizzes/:quizId/start
+export interface StartAttemptResponse {
+  attempt: {
+    id: string;
+    quiz: string;
+    student: string;
+    status: AttemptStatus;
+    startTime: string;
+    responses: AttemptAnswer[];
+    createdAt: string;
+    updatedAt: string;
+  };
+  questions: AttemptQuestion[];
+}
+
+// Combined view for UI convenience
 export interface AttemptDetail {
   id: string;
   quizId: string;
@@ -99,10 +122,13 @@ export interface StudentStats {
 
 // ── Payloads ─────────────────────────────────────────────────
 
-export interface StartAttemptPayload {
-  quizId: string;
+export interface SubmitAttemptPayload {
+  responses: AttemptAnswer[];
 }
 
-export interface SubmitAttemptPayload {
-  answers: AttemptAnswer[];
+export interface SubmitAttemptResponse {
+  message: string;
+  score: number;
+  totalMarks: number;
+  pendingGrading: boolean;
 }

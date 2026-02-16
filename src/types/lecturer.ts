@@ -5,8 +5,8 @@ import type { User } from "./auth";
 
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 export type QuizStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
-export type AttemptStatus = "IN_PROGRESS" | "COMPLETED" | "TIMED_OUT";
-export type ResultVisibility = "IMMEDIATE" | "AFTER_END" | "MANUAL";
+export type QuestionType = "MCQ" | "SUBJECTIVE";
+export type AttemptStatus = "STARTED" | "SUBMITTED" | "EXPIRED";
 
 // ── Question ───────────────────────────────────────────────
 
@@ -19,13 +19,12 @@ export interface QuestionOption {
 export interface Question {
   id: string;
   text: string;
-  type: "MCQ";
+  type: QuestionType;
   difficulty: Difficulty;
   marks: number;
   subject: string;
-  topic: string;
+  topic?: string;
   options: QuestionOption[];
-  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,11 +45,11 @@ export interface QuestionQueryParams {
 
 export interface CreateQuestionPayload {
   text: string;
-  type: "MCQ";
-  difficulty: Difficulty;
-  marks: number;
+  type?: QuestionType;
+  difficulty?: Difficulty;
+  marks?: number;
   subject: string;
-  topic: string;
+  topic?: string;
   options: { text: string; isCorrect: boolean }[];
 }
 
@@ -68,17 +67,14 @@ export interface UpdateQuestionPayload {
 export interface Quiz {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   status: QuizStatus;
   totalMarks: number;
   durationMinutes: number;
-  passMarks: number;
-  negativeMarks: number;
-  maxAttempts: number;
-  resultVisibility: ResultVisibility;
+  passMarks?: number;
   shuffleQuestions: boolean;
-  startTime: string;
-  endTime: string;
+  startTime?: string;
+  endTime?: string;
   questions: string[] | Question[];
   assignedClasses: string[];
   createdBy: string;
@@ -104,16 +100,13 @@ export interface QuizQueryParams {
 
 export interface CreateQuizPayload {
   title: string;
-  description: string;
+  description?: string;
   totalMarks: number;
-  durationMinutes: number;
-  passMarks: number;
-  negativeMarks: number;
-  maxAttempts: number;
-  resultVisibility: ResultVisibility;
-  shuffleQuestions: boolean;
-  startTime: string;
-  endTime: string;
+  durationMinutes?: number;
+  passMarks?: number;
+  shuffleQuestions?: boolean;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface UpdateQuizPayload {
@@ -122,9 +115,6 @@ export interface UpdateQuizPayload {
   totalMarks?: number;
   durationMinutes?: number;
   passMarks?: number;
-  negativeMarks?: number;
-  maxAttempts?: number;
-  resultVisibility?: ResultVisibility;
   shuffleQuestions?: boolean;
   startTime?: string;
   endTime?: string;
@@ -140,15 +130,25 @@ export interface PublishQuizPayload {
 
 // ── Quiz Attempt / Analytics ───────────────────────────────
 
+export interface QuizAttemptResponse {
+  questionId: string;
+  selectedOptionId?: string;
+  textAnswer?: string;
+  awardedMarks?: number;
+  isGraded: boolean;
+}
+
 export interface QuizAttempt {
   id: string;
   quiz: string | Quiz;
   student: string | User;
   status: AttemptStatus;
-  score: number;
-  totalMarks: number;
+  score?: number;
   startTime: string;
-  endTime: string;
+  endTime?: string;
+  responses: QuizAttemptResponse[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface QuizAnalyticsStats {
@@ -162,25 +162,104 @@ export interface QuizAnalyticsStats {
 }
 
 export interface QuizAnalyticsResult {
+  id: string;
   student: {
     id: string;
     name: string;
     email: string;
   };
   score: number;
-  totalMarks: number;
   status: AttemptStatus;
-  timeTaken: number; // seconds
-  submittedAt: string;
+  startTime: string;
+  endTime?: string;
+  responses: QuizAttemptResponse[];
 }
 
 export interface QuizAnalytics {
   quiz: {
-    id: string;
     title: string;
     totalMarks: number;
-    durationMinutes: number;
+    passMarks?: number;
   };
   stats: QuizAnalyticsStats;
   results: QuizAnalyticsResult[];
+}
+
+// Per-question analytics
+export interface QuestionAnalyticsItem {
+  questionId: string;
+  text: string;
+  type: QuestionType;
+  difficulty: Difficulty;
+  marks: number;
+  attemptedCount: number;
+  correctCount: number;
+  correctRate: number;
+  averageMarks: number;
+}
+
+export interface QuestionAnalytics {
+  quiz: {
+    title: string;
+    totalMarks: number;
+  };
+  questions: QuestionAnalyticsItem[];
+}
+
+// Difficulty analytics
+export interface DifficultyAnalyticsItem {
+  difficulty: Difficulty;
+  questionCount: number;
+  totalMarks: number;
+  correctRate: number;
+  averageScore: number;
+}
+
+export interface DifficultyAnalytics {
+  quiz: {
+    title: string;
+    totalMarks: number;
+  };
+  difficulties: DifficultyAnalyticsItem[];
+}
+
+// Grading
+export interface GradePayload {
+  grades: {
+    questionId: string;
+    awardedMarks: number;
+  }[];
+}
+
+export interface GradeResponse {
+  message: string;
+  score: number;
+  totalMarks: number;
+  allGraded: boolean;
+}
+
+// Student analytics
+export interface StudentAnalyticsAttempt {
+  id: string;
+  quizTitle: string;
+  score: number;
+  totalMarks: number;
+  percentage: number;
+  passed: boolean | null;
+  date: string;
+}
+
+export interface StudentAnalytics {
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  attempts: StudentAnalyticsAttempt[];
+  summary: {
+    totalAttempts: number;
+    averagePercentage: number;
+    quizzesPassed: number;
+    quizzesFailed: number;
+  };
 }

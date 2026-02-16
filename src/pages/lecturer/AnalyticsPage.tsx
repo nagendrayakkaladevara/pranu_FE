@@ -40,15 +40,12 @@ export default function AnalyticsPage() {
   const exportCSV = useCallback(() => {
     if (!analytics?.results?.length) return;
 
-    const headers = ["Student Name", "Email", "Score", "Total Marks", "Status", "Time Taken (s)", "Submitted At"];
+    const headers = ["Student Name", "Email", "Score", "Status"];
     const rows = analytics.results.map((r) => [
       r.student.name,
       r.student.email,
       r.score,
-      r.totalMarks,
       r.status,
-      r.timeTaken,
-      r.submittedAt,
     ]);
 
     const csvContent = [
@@ -166,6 +163,7 @@ export default function AnalyticsPage() {
                 </div>
                 <StudentResultsTable
                   results={analytics?.results ?? []}
+                  totalMarks={analytics?.quiz?.totalMarks}
                   isLoading={isLoading}
                 />
               </div>

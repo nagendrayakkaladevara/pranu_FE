@@ -32,7 +32,7 @@ export function useAssignedQuizzes(initialLimit = 10) {
       params.set("sortBy", "startTime:asc");
 
       const data = await api.get<PaginatedAssignedQuizzes>(
-        `/student/quizzes?${params}`,
+        `/exam/quizzes?${params}`,
       );
       setQuizzes(data.quizzes);
       setTotalPages(data.totalPages);

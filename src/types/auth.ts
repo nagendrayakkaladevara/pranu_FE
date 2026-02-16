@@ -6,12 +6,18 @@ export interface User {
   name: string;
   role: UserRole;
   isActive: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface AuthTokens {
   access: {
+    token: string;
+    expires: string;
+  };
+  refresh: {
     token: string;
     expires: string;
   };

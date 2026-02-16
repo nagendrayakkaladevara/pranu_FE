@@ -33,12 +33,12 @@ export default function OverviewPage() {
     async function fetchData() {
       try {
         const [statsData, quizzesData, attemptsData] = await Promise.all([
-          api.get<StudentStats>("/student/stats"),
+          api.get<StudentStats>("/exam/stats"),
           api.get<PaginatedAssignedQuizzes>(
-            "/student/quizzes?availability=ACTIVE&limit=5&sortBy=startTime:asc",
+            "/exam/quizzes?availability=ACTIVE&limit=5&sortBy=startTime:asc",
           ),
           api.get<PaginatedAttempts>(
-            "/student/attempts?limit=5&sortBy=submittedAt:desc",
+            "/exam/attempts?limit=5&sortBy=submittedAt:desc",
           ),
         ]);
         setStats(statsData);

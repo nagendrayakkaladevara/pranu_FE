@@ -10,9 +10,9 @@ const AVAILABILITY_CLASSES: Record<string, string> = {
 };
 
 const ATTEMPT_STATUS_CLASSES: Record<string, string> = {
-  IN_PROGRESS: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  COMPLETED: "bg-green-500/15 text-green-400 border-green-500/30",
-  TIMED_OUT: "bg-red-500/15 text-red-400 border-red-500/30",
+  STARTED: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  SUBMITTED: "bg-green-500/15 text-green-400 border-green-500/30",
+  EXPIRED: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
 interface AssignedQuizCardProps {
@@ -80,20 +80,24 @@ export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
         </div>
         {quiz.attemptCount > 0 && (
           <span className="text-xs">
-            {quiz.attemptCount}/{quiz.maxAttempts ?? "∞"} attempt{quiz.attemptCount !== 1 ? "s" : ""}
+            {quiz.attemptCount} attempt{quiz.attemptCount !== 1 ? "s" : ""}
           </span>
         )}
       </div>
 
       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="size-3" />
-          <span>Start: {formatDate(quiz.startTime)}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Calendar className="size-3" />
-          <span>End: {formatDate(quiz.endTime)}</span>
-        </div>
+        {quiz.startTime && (
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-3" />
+            <span>Start: {formatDate(quiz.startTime)}</span>
+          </div>
+        )}
+        {quiz.endTime && (
+          <div className="flex items-center gap-1.5">
+            <Calendar className="size-3" />
+            <span>End: {formatDate(quiz.endTime)}</span>
+          </div>
+        )}
       </div>
 
       {quiz.canAttempt && quiz.availability === "ACTIVE" && (
