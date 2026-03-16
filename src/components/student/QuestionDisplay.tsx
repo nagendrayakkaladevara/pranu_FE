@@ -28,6 +28,9 @@ export function QuestionDisplay({
           {question.type === "SUBJECTIVE" && (
             <span className="ml-2 text-amber-500">(Subjective)</span>
           )}
+          {question.type === "FILL_IN_BLANK" && (
+            <span className="ml-2 text-blue-500">(Fill in the blank)</span>
+          )}
         </p>
         <h3 className="font-display text-lg font-semibold leading-relaxed">
           {question.text}
@@ -38,6 +41,14 @@ export function QuestionDisplay({
         <textarea
           className="w-full min-h-[120px] rounded-xl border border-border bg-card p-4 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary"
           placeholder="Type your answer here..."
+          value={textAnswer ?? ""}
+          onChange={(e) => onTextAnswerChange?.(e.target.value)}
+        />
+      ) : question.type === "FILL_IN_BLANK" ? (
+        <input
+          type="text"
+          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary"
+          placeholder="Type your answer..."
           value={textAnswer ?? ""}
           onChange={(e) => onTextAnswerChange?.(e.target.value)}
         />

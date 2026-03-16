@@ -8,17 +8,19 @@ import type {
   CreateQuestionPayload,
   UpdateQuestionPayload,
   Difficulty,
+  QuestionType,
 } from "@/types/lecturer";
 
 export function useQuestions(initialParams?: QuestionQueryParams) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(initialParams?.page ?? 1);
   const [difficulty, setDifficultyState] = useState<Difficulty | undefined>(initialParams?.difficulty);
+  const [type, setTypeState] = useState<QuestionType | undefined>(initialParams?.type);
   const [subject, setSubjectState] = useState(initialParams?.subject ?? "");
   const [search, setSearchState] = useState(initialParams?.search ?? "");
   const limit = initialParams?.limit ?? 10;
 
-  const queryKey = ["questions", { page, limit, difficulty, subject, search }] as const;
+  const queryKey = ["questions", { page, limit, difficulty, type, subject, search }] as const;
 
   const { data, isLoading, error: queryError, refetch } = useQuery({
     queryKey,
@@ -27,6 +29,7 @@ export function useQuestions(initialParams?: QuestionQueryParams) {
       params.set("page", String(page));
       params.set("limit", String(limit));
       if (difficulty) params.set("difficulty", difficulty);
+      if (type) params.set("type", type);
       if (subject) params.set("subject", subject);
       if (search) params.set("search", search);
       params.set("sortBy", "createdAt:desc");
@@ -40,6 +43,11 @@ export function useQuestions(initialParams?: QuestionQueryParams) {
 
   const setDifficulty = useCallback((d: Difficulty | undefined) => {
     setDifficultyState(d);
+    setPage(1);
+  }, []);
+
+  const setType = useCallback((t: QuestionType | undefined) => {
+    setTypeState(t);
     setPage(1);
   }, []);
 
@@ -89,9 +97,11 @@ export function useQuestions(initialParams?: QuestionQueryParams) {
     error: queryError ? (queryError as Error).message : null,
     setPage,
     difficulty,
+    type,
     subject,
     search,
     setDifficulty,
+    setType,
     setSubject,
     setSearch,
     createQuestion: (payload: CreateQuestionPayload) => createMutation.mutateAsync(payload),

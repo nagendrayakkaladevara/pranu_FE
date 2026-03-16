@@ -4,7 +4,7 @@
 
 ### 1.1 Product Name
 
-Engineering College Quiz Examination System (ECQES)
+Vishnu Engineering College Quiz Examination System (VECQES)
 
 ### 1.2 Purpose
 

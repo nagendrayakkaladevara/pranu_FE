@@ -70,7 +70,7 @@ export default function DashboardPage() {
                 <path d="m9 9.5 2 2 4-4" />
               </svg>
             </div>
-            <span className="font-display font-bold text-sm tracking-tight">ECQES</span>
+            <span className="font-display font-bold text-sm tracking-tight">VECQES</span>
           </div>
 
           <div className="flex items-center gap-4">

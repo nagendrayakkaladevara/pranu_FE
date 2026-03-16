@@ -162,3 +162,36 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+/** Change password for STUDENT/LECTURER. Uses direct fetch to avoid ApiClient's 401 redirect on "Current password is incorrect". */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("Please authenticate");
+  }
+
+  const response = await fetch(`${API_BASE}/auth/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      currentPassword,
+      newPassword,
+    }),
+  });
+
+  if (response.status === 204) {
+    return;
+  }
+
+  const error: ApiError = await response.json().catch(() => ({
+    code: response.status,
+    message: response.statusText,
+  }));
+  throw new Error(error.message);
+}

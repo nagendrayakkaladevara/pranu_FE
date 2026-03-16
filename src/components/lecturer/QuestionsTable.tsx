@@ -24,6 +24,12 @@ const DIFFICULTY_CLASSES: Record<string, string> = {
   HARD: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
+const TYPE_LABELS: Record<string, string> = {
+  MCQ: "MCQ",
+  SUBJECTIVE: "Subjective",
+  FILL_IN_BLANK: "Fill-in-blank",
+};
+
 interface QuestionsTableProps {
   questions: Question[];
   isLoading: boolean;
@@ -61,6 +67,7 @@ export function QuestionsTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="min-w-[300px]">Question</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Subject</TableHead>
             <TableHead>Difficulty</TableHead>
             <TableHead>Marks</TableHead>
@@ -72,6 +79,11 @@ export function QuestionsTable({
             <TableRow key={q.id}>
               <TableCell className="font-medium max-w-[400px] truncate">
                 {q.text}
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="text-xs font-normal">
+                  {TYPE_LABELS[q.type] ?? q.type}
+                </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {q.subject}

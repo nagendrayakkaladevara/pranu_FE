@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Engineering College Quiz Examination System (ECQES)** — a centralized platform for engineering colleges to conduct quiz-based examinations with role-based access, automatic evaluation, and performance analytics. Built with React 19, TypeScript, and Vite 7.
+**Vishnu Engineering College Quiz Examination System (VECQES)** — a centralized platform for engineering colleges to conduct quiz-based examinations with role-based access, automatic evaluation, and performance analytics. Built with React 19, TypeScript, and Vite 7.
 
 ## Roles
 

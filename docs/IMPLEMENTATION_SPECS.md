@@ -1,6 +1,6 @@
 # Implementation Specifications
 
-This document outlines the implemented modules and their API specifications for the ECQES system.
+This document outlines the implemented modules and their API specifications for the VECQES system.
 
 ## 1. Authentication Module
 

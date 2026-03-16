@@ -5,7 +5,7 @@ import type { User } from "./auth";
 
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 export type QuizStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
-export type QuestionType = "MCQ" | "SUBJECTIVE";
+export type QuestionType = "MCQ" | "SUBJECTIVE" | "FILL_IN_BLANK";
 export type AttemptStatus = "STARTED" | "SUBMITTED" | "EXPIRED";
 
 // ── Question ───────────────────────────────────────────────
@@ -25,6 +25,7 @@ export interface Question {
   subject: string;
   topic?: string;
   options: QuestionOption[];
+  correctAnswers?: string[]; // FILL_IN_BLANK only; never sent to students
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +40,7 @@ export interface QuestionQueryParams {
   subject?: string;
   topic?: string;
   difficulty?: Difficulty;
+  type?: QuestionType;
   search?: string;
   sortBy?: string;
 }
@@ -50,7 +52,8 @@ export interface CreateQuestionPayload {
   marks?: number;
   subject: string;
   topic?: string;
-  options: { text: string; isCorrect: boolean }[];
+  options?: { text: string; isCorrect: boolean }[];
+  correctAnswers?: string[];
 }
 
 export interface UpdateQuestionPayload {
@@ -60,6 +63,7 @@ export interface UpdateQuestionPayload {
   subject?: string;
   topic?: string;
   options?: { text: string; isCorrect: boolean }[];
+  correctAnswers?: string[];
 }
 
 // ── Quiz ───────────────────────────────────────────────────

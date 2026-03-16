@@ -1,13 +1,13 @@
-# ECQES v1.0.0 — Release Notes
+# VECQES v1.0.0 — Release Notes
 
-**Engineering College Quiz Examination System**
+**Vishnu Engineering College Quiz Examination System**
 **Release Date:** February 15, 2026
 
 ---
 
 ## Overview
 
-ECQES is a centralized web platform for engineering colleges to conduct quiz-based examinations. It provides role-based dashboards for administrators, lecturers, and students — covering everything from user management and question banks to timed quiz attempts with automatic grading.
+VECQES is a centralized web platform for engineering colleges to conduct quiz-based examinations. It provides role-based dashboards for administrators, lecturers, and students — covering everything from user management and question banks to timed quiz attempts with automatic grading.
 
 **Tech Stack:** React 19 | TypeScript 5.9 | Vite 7 | Tailwind CSS 4 | TanStack React Query | Sonner
 
@@ -105,7 +105,7 @@ npm run build
 
 ## User Roles
 
-ECQES supports three roles with separate dashboards and permissions:
+VECQES supports three roles with separate dashboards and permissions:
 
 | Role       | Dashboard Path | Description |
 |------------|---------------|-------------|
@@ -548,5 +548,5 @@ Built with React 19, TypeScript, Tailwind CSS 4, Vite 7, TanStack React Query, R
 
 ---
 
-*ECQES v1.0.0 — Engineering College Quiz Examination System*
+*VECQES v1.0.0 — Vishnu Engineering College Quiz Examination System*
 *Secure examination platform for engineering colleges.*

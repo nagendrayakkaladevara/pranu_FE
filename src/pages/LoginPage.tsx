@@ -65,10 +65,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            ECQES
+            VECQES
           </h1>
           <p className="mt-2 text-muted-foreground text-sm font-body">
-            Engineering College Quiz Examination System
+            Vishnu Engineering College Quiz Examination System
           </p>
         </div>
 
@@ -189,46 +189,82 @@ export default function LoginPage() {
             <p className="text-xs font-display font-medium text-muted-foreground mb-3 uppercase tracking-widest">
               Demo Accounts
             </p>
-            <div className="space-y-2">
-              {[
-                { role: "Admin", email: "admin@ecqes.edu", pw: "admin123" },
-                { role: "Lecturer", email: "lecturer@ecqes.edu", pw: "lecturer123" },
-                { role: "Student", email: "student@ecqes.edu", pw: "student123" },
-              ].map((demo) => (
-                <button
-                  key={demo.role}
-                  type="button"
-                  onClick={() => {
-                    setEmail(demo.email);
-                    setPassword(demo.pw);
-                    setError("");
-                  }}
-                  className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all duration-200 group"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-md bg-primary/10 text-primary text-[10px] font-display font-bold">
-                      {demo.role[0]}
-                    </span>
-                    <span className="text-sm text-foreground/70 group-hover:text-foreground transition-colors">
-                      {demo.role}
-                    </span>
-                  </span>
-                  <span className="text-xs text-muted-foreground/60 font-mono">
-                    {demo.email}
-                  </span>
-                </button>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="pb-2 pr-3 font-medium text-muted-foreground">Role</th>
+                    <th className="pb-2 pr-3 font-medium text-muted-foreground">Email</th>
+                    <th className="pb-2 font-medium text-muted-foreground">Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { role: "ADMIN", email: "admin@admin.com", pw: "admin123" },
+                    { role: "LECTURER", email: "lecturer@demo.com", pw: "lecturer123" },
+                    { role: "STUDENT", email: "student@demo.com", pw: "student123" },
+                  ].map((demo) => (
+                    <tr
+                      key={demo.role}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        setEmail(demo.email);
+                        setPassword(demo.pw);
+                        setError("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setEmail(demo.email);
+                          setPassword(demo.pw);
+                          setError("");
+                        }
+                      }}
+                      className="border-b border-border/50 last:border-0 hover:bg-primary/5 cursor-pointer transition-colors group"
+                    >
+                      <td className="py-2.5 pr-3">
+                        <span className="flex items-center gap-2">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-primary/10 text-primary text-[10px] font-display font-bold shrink-0">
+                            {demo.role[0]}
+                          </span>
+                          <span className="font-medium text-foreground/80 group-hover:text-foreground">
+                            {demo.role}
+                          </span>
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-3 font-mono text-muted-foreground text-xs">
+                        {demo.email}
+                      </td>
+                      <td className="py-2.5 font-mono text-muted-foreground text-xs">
+                        {demo.pw}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+            <p className="mt-3 text-[11px] text-muted-foreground/70">
+              Click a role to auto-fill credentials
+            </p>
           </div>
         </div>
 
         {/* Footer */}
-        <p
-          className="text-center text-[11px] text-muted-foreground/40 mt-8 font-body animate-fade-up"
+        <div
+          className="text-center mt-8 font-body animate-fade-up flex flex-col items-center gap-2"
           style={{ animationDelay: "0.45s" }}
         >
-          &copy; 2026 ECQES. Secure examination platform.
-        </p>
+          <Link
+            to="/about"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            About VECQES & User Guide
+          </Link>
+          <p className="text-[11px] text-muted-foreground/40">
+            &copy; 2026 VECQES. Secure examination platform.
+          </p>
+        </div>
       </div>
     </div>
   );

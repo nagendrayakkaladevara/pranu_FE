@@ -1,15 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  ClipboardList,
-  Trophy,
-  LogOut,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { LayoutDashboard, ClipboardList, Megaphone, Trophy, Info } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -23,13 +16,14 @@ import {
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/student" },
   { label: "My Quizzes", icon: ClipboardList, path: "/student/quizzes" },
+  { label: "Circulars", icon: Megaphone, path: "/student/circulars" },
   { label: "Results", icon: Trophy, path: "/student/results" },
+  { label: "About", icon: Info, path: "/student/about" },
 ];
 
 export function StudentSidebar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/student") return pathname === "/student";
@@ -58,7 +52,7 @@ export function StudentSidebar() {
           </div>
           <div>
             <span className="font-display font-bold text-sm tracking-tight">
-              ECQES
+              VECQES
             </span>
             <p className="text-[10px] text-muted-foreground">Student Portal</p>
           </div>
@@ -88,39 +82,6 @@ export function StudentSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="p-3">
-        <SidebarSeparator className="mx-0 mb-2" />
-        {user && (
-          <div className="flex items-center gap-3 px-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-              <span className="text-xs font-display font-bold text-primary">
-                {user.name.charAt(0)}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{user.name}</p>
-              <p className="text-[10px] text-muted-foreground truncate">
-                {user.email}
-              </p>
-            </div>
-          </div>
-        )}
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-              className="text-muted-foreground hover:text-destructive bg-[#FFA6A6]"
-            >
-              <LogOut className="size-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }

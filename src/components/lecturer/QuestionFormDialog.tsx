@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import type {
   Question,
+  QuestionType,
   Difficulty,
   CreateQuestionPayload,
   UpdateQuestionPayload,
@@ -54,6 +55,7 @@ export function QuestionFormDialog({
   const [text, setText] = useState("");
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
+  const [type, setType] = useState<QuestionType>("MCQ");
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
   const [marks, setMarks] = useState(1);
   const [options, setOptions] = useState<OptionDraft[]>([
@@ -62,6 +64,7 @@ export function QuestionFormDialog({
     { ...EMPTY_OPTION },
     { ...EMPTY_OPTION },
   ]);
+  const [correctAnswers, setCorrectAnswers] = useState<string[]>([""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,6 +73,7 @@ export function QuestionFormDialog({
       setText(question?.text ?? "");
       setSubject(question?.subject ?? "");
       setTopic(question?.topic ?? "");
+      setType((question?.type ?? "MCQ") as QuestionType);
       setDifficulty(question?.difficulty ?? "EASY");
       setMarks(question?.marks ?? 1);
       setOptions(
@@ -81,6 +85,11 @@ export function QuestionFormDialog({
               { ...EMPTY_OPTION },
               { ...EMPTY_OPTION },
             ],
+      );
+      setCorrectAnswers(
+        question?.correctAnswers?.length
+          ? question.correctAnswers
+          : [""],
       );
       setError(null);
     }
@@ -108,49 +117,83 @@ export function QuestionFormDialog({
     setOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addCorrectAnswer = () => {
+    setCorrectAnswers((prev) => [...prev, ""]);
+  };
+
+  const updateCorrectAnswer = (index: number, value: string) => {
+    setCorrectAnswers((prev) =>
+      prev.map((a, i) => (i === index ? value : a)),
+    );
+  };
+
+  const removeCorrectAnswer = (index: number) => {
+    if (correctAnswers.length <= 1) return;
+    setCorrectAnswers((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const hasCorrect = options.some((o) => o.isCorrect);
-    if (!hasCorrect) {
-      setError("At least one option must be marked as correct.");
-      return;
-    }
-
-    const hasEmpty = options.some((o) => !o.text.trim());
-    if (hasEmpty) {
-      setError("All options must have text.");
-      return;
+    if (type === "MCQ") {
+      const hasCorrect = options.some((o) => o.isCorrect);
+      if (!hasCorrect) {
+        setError("At least one option must be marked as correct.");
+        return;
+      }
+      const hasEmpty = options.some((o) => !o.text.trim());
+      if (hasEmpty) {
+        setError("All options must have text.");
+        return;
+      }
+    } else if (type === "FILL_IN_BLANK") {
+      const validAnswers = correctAnswers.filter((a) => a.trim());
+      if (validAnswers.length === 0) {
+        setError("At least one correct answer is required.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
     try {
+      const basePayload = {
+        text,
+        subject,
+        topic,
+        difficulty,
+        marks,
+      };
+
       if (isEditing) {
-        await onSubmit({
-          text,
-          subject,
-          topic,
-          difficulty,
-          marks,
-          options: options.map((o) => ({
+        const updatePayload: UpdateQuestionPayload = { ...basePayload };
+        if (type === "MCQ") {
+          updatePayload.options = options.map((o) => ({
             text: o.text.trim(),
             isCorrect: o.isCorrect,
-          })),
-        } as UpdateQuestionPayload);
+          }));
+        } else if (type === "FILL_IN_BLANK") {
+          updatePayload.correctAnswers = correctAnswers
+            .map((a) => a.trim())
+            .filter(Boolean);
+        }
+        await onSubmit(updatePayload);
       } else {
-        await onSubmit({
-          text,
-          type: "MCQ",
-          subject,
-          topic,
-          difficulty,
-          marks,
-          options: options.map((o) => ({
+        const createPayload: CreateQuestionPayload = {
+          ...basePayload,
+          type,
+        };
+        if (type === "MCQ") {
+          createPayload.options = options.map((o) => ({
             text: o.text.trim(),
             isCorrect: o.isCorrect,
-          })),
-        } as CreateQuestionPayload);
+          }));
+        } else if (type === "FILL_IN_BLANK") {
+          createPayload.correctAnswers = correctAnswers
+            .map((a) => a.trim())
+            .filter(Boolean);
+        }
+        await onSubmit(createPayload);
       }
       onOpenChange(false);
       toast.success(isEditing ? "Question updated" : "Question created");
@@ -171,7 +214,7 @@ export function QuestionFormDialog({
           <DialogDescription>
             {isEditing
               ? "Update question details and options."
-              : "Add a new MCQ to your question bank."}
+              : "Add a new question to your question bank (MCQ or Fill-in-the-blank)."}
           </DialogDescription>
         </DialogHeader>
 
@@ -223,6 +266,22 @@ export function QuestionFormDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="q-type">Question Type</Label>
+            <Select
+              value={type}
+              onValueChange={(v) => setType(v as QuestionType)}
+            >
+              <SelectTrigger id="q-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MCQ">Multiple Choice (MCQ)</SelectItem>
+                <SelectItem value="FILL_IN_BLANK">Fill in the Blank</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="q-difficulty">Difficulty</Label>
@@ -253,52 +312,95 @@ export function QuestionFormDialog({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Options</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addOption}
-              >
-                <Plus className="size-3 mr-1" />
-                Add
-              </Button>
-            </div>
-            {options.map((opt, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="correctOption"
-                  checked={opt.isCorrect}
-                  onChange={() => updateOption(i, { isCorrect: true })}
-                  className="accent-primary"
-                  title="Mark as correct"
-                />
-                <Input
-                  value={opt.text}
-                  onChange={(e) => updateOption(i, { text: e.target.value })}
-                  placeholder={`Option ${i + 1}`}
-                  className="flex-1"
-                />
-                {options.length > 2 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeOption(i)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                )}
+          {type === "MCQ" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Options</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOption}
+                >
+                  <Plus className="size-3 mr-1" />
+                  Add
+                </Button>
               </div>
-            ))}
-            <p className="text-[11px] text-muted-foreground">
-              Select the radio button next to the correct answer.
-            </p>
-          </div>
+              {options.map((opt, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="correctOption"
+                    checked={opt.isCorrect}
+                    onChange={() => updateOption(i, { isCorrect: true })}
+                    className="accent-primary"
+                    title="Mark as correct"
+                  />
+                  <Input
+                    value={opt.text}
+                    onChange={(e) => updateOption(i, { text: e.target.value })}
+                    placeholder={`Option ${i + 1}`}
+                    className="flex-1"
+                  />
+                  {options.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeOption(i)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <p className="text-[11px] text-muted-foreground">
+                Select the radio button next to the correct answer.
+              </p>
+            </div>
+          )}
+
+          {type === "FILL_IN_BLANK" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Correct Answers</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addCorrectAnswer}
+                >
+                  <Plus className="size-3 mr-1" />
+                  Add
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Add one or more acceptable answers (case-insensitive matching).
+              </p>
+              {correctAnswers.map((ans, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    value={ans}
+                    onChange={(e) => updateCorrectAnswer(i, e.target.value)}
+                    placeholder={`Answer ${i + 1}`}
+                    className="flex-1"
+                  />
+                  {correctAnswers.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeCorrectAnswer(i)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 

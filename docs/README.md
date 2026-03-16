@@ -1,6 +1,6 @@
 # Project Documentation
 
-Welcome to the ECQES (Engineering College Quiz Examination System) backend documentation. Here you'll find everything you need to understand and integrate with the API.
+Welcome to the VECQES (Vishnu Engineering College Quiz Examination System) backend documentation. Here you'll find everything you need to understand and integrate with the API.
 
 ## For Frontend Team
 

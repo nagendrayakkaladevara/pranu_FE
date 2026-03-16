@@ -3,21 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { getRoleDashboardPath } from "@/lib/routing";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false, }, }, });
 
 // Lazy-loaded pages
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
@@ -25,6 +18,7 @@ const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const UnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
 
 // Admin
 const AdminLayout = lazy(() =>
@@ -33,6 +27,7 @@ const AdminLayout = lazy(() =>
 const OverviewPage = lazy(() => import("@/pages/admin/OverviewPage"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const ClassesPage = lazy(() => import("@/pages/admin/ClassesPage"));
+const AdminCircularsPage = lazy(() => import("@/pages/admin/CircularsPage"));
 
 // Lecturer
 const LecturerLayout = lazy(() =>
@@ -41,6 +36,7 @@ const LecturerLayout = lazy(() =>
 const LecturerOverviewPage = lazy(() => import("@/pages/lecturer/OverviewPage"));
 const QuestionsPage = lazy(() => import("@/pages/lecturer/QuestionsPage"));
 const QuizzesPage = lazy(() => import("@/pages/lecturer/QuizzesPage"));
+const LecturerCircularsPage = lazy(() => import("@/pages/lecturer/CircularsPage"));
 const QuizDetailPage = lazy(() => import("@/pages/lecturer/QuizDetailPage"));
 const AnalyticsPage = lazy(() => import("@/pages/lecturer/AnalyticsPage"));
 
@@ -50,6 +46,7 @@ const StudentLayout = lazy(() =>
 );
 const StudentOverviewPage = lazy(() => import("@/pages/student/OverviewPage"));
 const MyQuizzesPage = lazy(() => import("@/pages/student/MyQuizzesPage"));
+const StudentCircularsPage = lazy(() => import("@/pages/student/CircularsPage"));
 const QuizTakerPage = lazy(() => import("@/pages/student/QuizTakerPage"));
 const ResultsPage = lazy(() => import("@/pages/student/ResultsPage"));
 
@@ -74,6 +71,7 @@ function RootRedirect() {
 }
 
 function App() {
+  useTheme(); // Initialize theme on app load so LoginPage and other unauthenticated pages respect user preference
   return (
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -87,6 +85,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/about" element={<AboutPage />} />
 
             {/* Admin routes — nested with layout */}
             <Route
@@ -100,6 +99,8 @@ function App() {
               <Route index element={<OverviewPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="classes" element={<ClassesPage />} />
+              <Route path="circulars" element={<AdminCircularsPage />} />
+              <Route path="about" element={<AboutPage />} />
             </Route>
 
             {/* Lecturer routes — nested with layout */}
@@ -114,8 +115,10 @@ function App() {
               <Route index element={<LecturerOverviewPage />} />
               <Route path="questions" element={<QuestionsPage />} />
               <Route path="quizzes" element={<QuizzesPage />} />
+              <Route path="circulars" element={<LecturerCircularsPage />} />
               <Route path="quizzes/:id" element={<QuizDetailPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="about" element={<AboutPage />} />
             </Route>
 
             {/* Student routes — nested with layout */}
@@ -129,8 +132,10 @@ function App() {
             >
               <Route index element={<StudentOverviewPage />} />
               <Route path="quizzes" element={<MyQuizzesPage />} />
+              <Route path="circulars" element={<StudentCircularsPage />} />
               <Route path="quizzes/:id/attempt" element={<QuizTakerPage />} />
               <Route path="results" element={<ResultsPage />} />
+              <Route path="about" element={<AboutPage />} />
             </Route>
 
             {/* Catch-all */}

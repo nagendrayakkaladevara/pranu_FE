@@ -56,10 +56,10 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            ECQES
+            VECQES
           </h1>
           <p className="mt-2 text-muted-foreground text-sm font-body">
-            Engineering College Quiz Examination System
+            Vishnu Engineering College Quiz Examination System
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export default function ForgotPasswordPage() {
           className="text-center text-[11px] text-muted-foreground/40 mt-8 font-body animate-fade-up"
           style={{ animationDelay: "0.3s" }}
         >
-          &copy; 2026 ECQES. Secure examination platform.
+          &copy; 2026 VECQES. Secure examination platform.
         </p>
       </div>
     </div>

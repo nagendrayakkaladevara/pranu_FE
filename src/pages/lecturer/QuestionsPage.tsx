@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Plus, Search, Upload } from "lucide-react";
 import type {
   Question,
+  QuestionType,
   Difficulty,
   CreateQuestionPayload,
   UpdateQuestionPayload,
@@ -40,7 +41,9 @@ export default function QuestionsPage() {
     isLoading,
     error,
     difficulty,
+    type,
     setDifficulty,
+    setType,
     setSearch,
     setPage,
     createQuestion,
@@ -105,7 +108,7 @@ export default function QuestionsPage() {
         <div>
           <h2 className="font-display text-2xl font-bold">Question Bank</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Manage your MCQ question bank.
+            Manage your question bank (MCQ and Fill-in-the-blank).
           </p>
         </div>
         <div className="flex gap-2">
@@ -134,6 +137,21 @@ export default function QuestionsPage() {
             className="pl-9"
           />
         </form>
+        <Select
+          value={type ?? "ALL"}
+          onValueChange={(v) =>
+            setType(v === "ALL" ? undefined : (v as QuestionType))
+          }
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Types</SelectItem>
+            <SelectItem value="MCQ">MCQ</SelectItem>
+            <SelectItem value="FILL_IN_BLANK">Fill-in-blank</SelectItem>
+          </SelectContent>
+        </Select>
         <Select
           value={difficulty ?? "ALL"}
           onValueChange={(v) =>

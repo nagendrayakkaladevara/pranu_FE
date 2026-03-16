@@ -1,4 +1,4 @@
-# ECQES — Engineering College Quiz Examination System
+# VECQES — Vishnu Engineering College Quiz Examination System
 
 A centralized web platform for engineering colleges to conduct quiz-based examinations with role-based access, automatic evaluation, and performance analytics.
 

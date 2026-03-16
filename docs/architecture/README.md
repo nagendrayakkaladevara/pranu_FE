@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ECQES backend follows a **Layered Architecture** (Controller-Service-Repository) to ensure separation of concerns, scalability, and maintainability.
+The VECQES backend follows a **Layered Architecture** (Controller-Service-Repository) to ensure separation of concerns, scalability, and maintainability.
 
 ## Tech Stack
 
