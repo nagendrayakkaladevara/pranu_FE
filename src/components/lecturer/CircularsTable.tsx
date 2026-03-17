@@ -38,7 +38,7 @@ function formatDate(iso: string) {
 function targetDisplay(c: Circular): string {
   if (c.targetType === "CLASS" && c.targetClassId) {
     const ref = typeof c.targetClassId === "object" ? c.targetClassId : null;
-    return ref?.name ?? (typeof c.targetClassId === "string" ? c.targetClassId : "—");
+    return ref?.name ?? String(c.targetClassId);
   }
   if (c.targetType === "DEPARTMENT") return c.targetDepartment ?? "—";
   return "All Students";
