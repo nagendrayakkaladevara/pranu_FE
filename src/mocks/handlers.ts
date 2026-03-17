@@ -31,6 +31,48 @@ const circularsStore: Array<{
   },
 ];
 
+// In-memory store for notifications (MSW mock)
+const notificationsStore: Array<{
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string | null;
+  link: string | null;
+  metadata: Record<string, string>;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}> = [
+  {
+    id: "notif-1",
+    userId: "1",
+    type: "CIRCULAR",
+    title: "New notice: Exam Schedule Update",
+    message: "The mid-term exam has been rescheduled to next Friday.",
+    link: "/circulars/circ-1",
+    metadata: { circularId: "circ-1" },
+    read: false,
+    readAt: null,
+    createdAt: new Date(Date.now() - 3600_000).toISOString(),
+    updatedAt: new Date(Date.now() - 3600_000).toISOString(),
+  },
+  {
+    id: "notif-2",
+    userId: "1",
+    type: "QUIZ_PUBLISHED",
+    title: "New quiz available: Math Quiz 1",
+    message: null,
+    link: "/exam/quizzes",
+    metadata: { quizId: "quiz-1" },
+    read: false,
+    readAt: null,
+    createdAt: new Date(Date.now() - 1800_000).toISOString(),
+    updatedAt: new Date(Date.now() - 1800_000).toISOString(),
+  },
+];
+
 export const handlers = [
   // Auth
   http.post(`${API_BASE}/auth/login`, async ({ request }) => {
@@ -219,6 +261,59 @@ export const handlers = [
     const idx = circularsStore.findIndex((x) => x.id === params.circularId);
     if (idx < 0) return HttpResponse.json({ message: "Not found" }, { status: 404 });
     circularsStore.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // Notifications - List
+  http.get(`${API_BASE}/notifications`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get("page")) || 1;
+    const limit = Number(url.searchParams.get("limit")) || 10;
+    const readFilter = url.searchParams.get("read");
+
+    let filtered = [...notificationsStore];
+    if (readFilter === "true") filtered = filtered.filter((n) => n.read);
+    else if (readFilter === "false") filtered = filtered.filter((n) => !n.read);
+
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const totalResults = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(totalResults / limit));
+    const start = (page - 1) * limit;
+    const notifications = filtered.slice(start, start + limit);
+
+    return HttpResponse.json({
+      notifications,
+      page,
+      limit,
+      totalPages,
+      totalResults,
+    });
+  }),
+
+  // Notifications - Unread count
+  http.get(`${API_BASE}/notifications/unread-count`, () => {
+    const count = notificationsStore.filter((n) => !n.read).length;
+    return HttpResponse.json({ count });
+  }),
+
+  // Notifications - Mark one as read
+  http.patch(`${API_BASE}/notifications/:notificationId/read`, ({ params }) => {
+    const idx = notificationsStore.findIndex((n) => n.id === params.notificationId);
+    if (idx < 0) return HttpResponse.json({ message: "Notification not found" }, { status: 404 });
+    const now = new Date().toISOString();
+    notificationsStore[idx] = { ...notificationsStore[idx], read: true, readAt: now, updatedAt: now };
+    return HttpResponse.json(notificationsStore[idx]);
+  }),
+
+  // Notifications - Mark all as read
+  http.patch(`${API_BASE}/notifications/read-all`, () => {
+    const now = new Date().toISOString();
+    notificationsStore.forEach((n) => {
+      n.read = true;
+      n.readAt = now;
+      n.updatedAt = now;
+    });
     return new HttpResponse(null, { status: 204 });
   }),
 ];
