@@ -2,8 +2,8 @@ import { useLocation } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { NotificationHistory } from "@/components/NotificationHistory";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserMenu } from "@/components/UserMenu";
+import vishnuLogo from "@/assets/vishnulogo.png";
 
 const PAGE_TITLES: Record<string, string> = {
   "/student": "Dashboard",
@@ -22,12 +22,16 @@ export function StudentHeader() {
       <div className="flex items-center gap-3 px-4 h-14">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="h-5" />
-        <h1 className="font-display font-semibold text-sm">{title}</h1>
+        <img
+          src={vishnuLogo}
+          alt="Vishnu Engineering College"
+          className="h-8 w-auto"
+        />
 
         <div className="ml-auto flex items-center gap-3">
-          <ThemeToggle />
+          <h1 className="font-display font-semibold text-sm">{title}</h1>
           <NotificationHistory />
-          <UserMenu />
+          <UserMenu mobileOnly={false} />
         </div>
       </div>
     </header>

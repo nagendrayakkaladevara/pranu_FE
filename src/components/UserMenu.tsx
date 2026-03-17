@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +61,13 @@ export function UserMenu({ mobileOnly = true }: UserMenuProps) {
               </p>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="font-normal text-muted-foreground text-xs py-1">
+            Theme
+          </DropdownMenuLabel>
+          <div className="px-2 pb-2 pt-0">
+            <ThemeToggle fullWidth />
+          </div>
           <DropdownMenuSeparator />
           {canChangePassword ? (
             <DropdownMenuItem
