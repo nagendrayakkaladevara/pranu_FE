@@ -69,7 +69,7 @@ export function QuizTimer({ endTime, onExpired }: QuizTimerProps) {
       aria-live="polite"
       aria-atomic="true"
       aria-label={`Time remaining: ${formatTime(secondsLeft)}`}
-      className={`flex items-center gap-2 font-display text-lg font-bold tabular-nums ${
+      className={`flex items-center gap-2 font-display text-base sm:text-lg font-bold tabular-nums shrink-0 ${
         isUrgent ? "text-red-500 animate-pulse" : isWarning ? "text-amber-500" : "text-foreground"
       }`}
     >

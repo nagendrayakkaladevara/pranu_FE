@@ -9,7 +9,7 @@ export function StudentLayout() {
       <StudentSidebar />
       <SidebarInset>
         <StudentHeader />
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 overflow-x-hidden">
           <Outlet />
         </div>
       </SidebarInset>

@@ -279,24 +279,26 @@ export default function QuizTakerPage() {
     ).toISOString();
 
   return (
-    <div className="p-6 animate-fade-up">
+    <div className="min-w-0 overflow-x-hidden px-4 py-4 sm:p-6 animate-fade-up">
       <Breadcrumbs items={[
         { label: "Quizzes", href: "/student/quizzes" },
         { label: attempt.quizTitle },
       ]} />
-      {/* Header with title + timer */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Header with title + timer - stacks on mobile */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-xl font-bold truncate">
+          <h2 className="font-display text-lg sm:text-xl font-bold truncate">
             {attempt.quizTitle}
           </h2>
         </div>
-        <QuizTimer endTime={timerEndTime} onExpired={handleTimerExpired} />
+        <div className="shrink-0">
+          <QuizTimer endTime={timerEndTime} onExpired={handleTimerExpired} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 sm:gap-6">
         {/* Main question area */}
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-6">
           {currentQuestion && (
             <QuestionDisplay
               question={currentQuestion}
@@ -309,15 +311,18 @@ export default function QuizTakerPage() {
             />
           )}
 
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+          {/* Navigation buttons - responsive for mobile */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border">
             <Button
               variant="outline"
+              size="sm"
+              className="shrink-0"
               onClick={handlePrev}
               disabled={currentIndex === 0}
             >
-              <ChevronLeft className="size-4 mr-1" />
-              Previous
+              <ChevronLeft className="size-4 sm:mr-1" />
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">Prev</span>
             </Button>
 
             <Button
@@ -325,23 +330,26 @@ export default function QuizTakerPage() {
               size="sm"
               onClick={toggleBookmark}
               aria-label={currentQuestion && bookmarked.has(currentQuestion.id) ? "Remove bookmark" : "Bookmark for review"}
-              className={currentQuestion && bookmarked.has(currentQuestion.id) ? "text-amber-500" : "text-muted-foreground"}
+              className={`shrink-0 ${currentQuestion && bookmarked.has(currentQuestion.id) ? "text-amber-500" : "text-muted-foreground"}`}
             >
               {currentQuestion && bookmarked.has(currentQuestion.id) ? (
-                <BookmarkCheck className="size-4 mr-1" />
+                <BookmarkCheck className="size-4 sm:mr-1" />
               ) : (
-                <Bookmark className="size-4 mr-1" />
+                <Bookmark className="size-4 sm:mr-1" />
               )}
-              {currentQuestion && bookmarked.has(currentQuestion.id) ? "Bookmarked" : "Bookmark"}
+              <span className="hidden sm:inline">
+                {currentQuestion && bookmarked.has(currentQuestion.id) ? "Bookmarked" : "Bookmark"}
+              </span>
             </Button>
 
             {currentIndex === totalQuestions - 1 ? (
-              <Button onClick={() => setShowSubmitDialog(true)}>
-                <Send className="size-4 mr-1" />
-                Submit Quiz
+              <Button size="sm" className="shrink-0" onClick={() => setShowSubmitDialog(true)}>
+                <Send className="size-4 sm:mr-1" />
+                <span className="sm:hidden">Submit</span>
+                <span className="hidden sm:inline">Submit Quiz</span>
               </Button>
             ) : (
-              <Button onClick={handleNext}>
+              <Button size="sm" className="shrink-0" onClick={handleNext}>
                 Next
                 <ChevronRight className="size-4 ml-1" />
               </Button>
