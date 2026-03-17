@@ -149,7 +149,7 @@ export default function ClassFormPage() {
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
 
-          <CardFooter className="gap-2">
+          <CardFooter className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"

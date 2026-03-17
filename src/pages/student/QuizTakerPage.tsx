@@ -320,7 +320,7 @@ export default function QuizTakerPage() {
           )}
 
           {/* Navigation buttons - responsive for mobile */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border">
             <Button
               variant="outline"
               size="sm"

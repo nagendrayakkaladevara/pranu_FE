@@ -67,7 +67,7 @@ export default function MyQuizzesPage() {
 
       {/* Filters */}
       <div
-        className="flex flex-col sm:flex-row gap-3 animate-fade-up"
+        className="flex flex-col sm:flex-row sm:items-center gap-3 animate-fade-up"
         style={{ animationDelay: "0.05s" }}
       >
         <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-sm">

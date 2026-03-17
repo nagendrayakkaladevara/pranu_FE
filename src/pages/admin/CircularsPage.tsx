@@ -84,7 +84,7 @@ export default function CircularsPage() {
 
       {/* Filters */}
       <div
-        className="flex flex-wrap gap-3 animate-fade-up"
+        className="flex flex-wrap items-center gap-3 animate-fade-up"
         style={{ animationDelay: "0.05s" }}
       >
         <Select
