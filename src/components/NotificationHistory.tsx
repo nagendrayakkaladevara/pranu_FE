@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Bell, CheckCheck, FileText, ClipboardList, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,13 +56,16 @@ export function NotificationHistory() {
     useMarkAllNotificationsAsRead();
 
   const notifications = data?.notifications ?? [];
-  const hasUnread = notifications.some((n) => !n.read);
 
   const handleNotificationClick = (n: Notification) => {
+    if (!user) return;
     if (!n.read) {
-      markAsRead(n.id, { onSuccess: refetchCount });
+      markAsRead(n.id, {
+        onSuccess: refetchCount,
+        onError: () => toast.error("Failed to mark notification as read"),
+      });
     }
-    const path = getNotificationRoute(n, user!.role);
+    const path = getNotificationRoute(n, user.role);
     navigate(path);
     setOpen(false);
   };
@@ -72,6 +76,7 @@ export function NotificationHistory() {
         refetchCount();
         setOpen(false);
       },
+      onError: () => toast.error("Failed to mark all as read"),
     });
   };
 
@@ -99,7 +104,7 @@ export function NotificationHistory() {
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h4 className="font-display text-sm font-semibold">Notifications</h4>
-          {hasUnread && (
+          {count > 0 && (
             <Button
               variant="ghost"
               size="xs"
