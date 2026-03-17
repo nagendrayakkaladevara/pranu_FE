@@ -121,18 +121,18 @@ export default function OverviewPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold animate-fade-up">
+    <div className="p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 pb-safe">
+      <div className="animate-fade-up">
+        <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">
           Welcome back
         </h2>
-        <p className="text-muted-foreground text-sm mt-1 animate-fade-up" style={{ animationDelay: "0.05s" }}>
+        <p className="text-muted-foreground text-sm mt-0.5 sm:mt-1 animate-fade-up" style={{ animationDelay: "0.05s" }}>
           Here's an overview of your organization.
         </p>
       </div>
 
       {/* User Counts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard label="Total Users" value={counts.totalUsers} icon={Users} isLoading={isLoading} />
         <StatCard label="Lecturers" value={counts.lecturers} icon={Shield} isLoading={isLoading} />
         <StatCard label="Students" value={counts.students} icon={GraduationCap} isLoading={isLoading} />
@@ -140,11 +140,11 @@ export default function OverviewPage() {
       </div>
 
       {/* Quiz Counts */}
-      <div>
-        <h3 className="font-display text-lg font-semibold mb-3 animate-fade-up" style={{ animationDelay: "0.1s" }}>
+      <div className="animate-fade-up" style={{ animationDelay: "0.1s" }}>
+        <h3 className="font-display text-base sm:text-lg font-semibold mb-3">
           Quizzes
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard label="Total Quizzes" value={quizCounts.total} icon={FileQuestion} isLoading={isQuizLoading} />
           <StatCard label="Published" value={quizCounts.published} icon={TrendingUp} isLoading={isQuizLoading} />
           <StatCard label="Drafts" value={quizCounts.draft} icon={BarChart3} isLoading={isQuizLoading} />
@@ -155,42 +155,42 @@ export default function OverviewPage() {
       {/* Analytics (from /admin/analytics if available) */}
       {!isAnalyticsLoading && analytics && (
         <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
-          <h3 className="font-display text-lg font-semibold mb-3">
+          <h3 className="font-display text-base sm:text-lg font-semibold mb-3">
             Performance Overview
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="rounded-xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground mb-1">Total Attempts</p>
-              <p className="font-display text-3xl font-bold">{analytics.totalAttempts}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-stretch gap-3 sm:gap-0">
+              <p className="text-xs sm:text-sm text-muted-foreground sm:mb-1 order-2 sm:order-1">Total Attempts</p>
+              <p className="font-display text-2xl sm:text-3xl font-bold tabular-nums order-1 sm:order-2">{analytics.totalAttempts}</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground mb-1">Average Score</p>
-              <p className="font-display text-3xl font-bold">{Math.round(analytics.averageScore)}%</p>
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-stretch gap-3 sm:gap-0">
+              <p className="text-xs sm:text-sm text-muted-foreground sm:mb-1 order-2 sm:order-1">Average Score</p>
+              <p className="font-display text-2xl sm:text-3xl font-bold tabular-nums order-1 sm:order-2">{Math.round(analytics.averageScore)}%</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground mb-1">Pass Rate</p>
-              <p className="font-display text-3xl font-bold">{Math.round(analytics.passRate)}%</p>
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-stretch gap-3 sm:gap-0">
+              <p className="text-xs sm:text-sm text-muted-foreground sm:mb-1 order-2 sm:order-1">Pass Rate</p>
+              <p className="font-display text-2xl sm:text-3xl font-bold tabular-nums order-1 sm:order-2">{Math.round(analytics.passRate)}%</p>
             </div>
           </div>
 
           {/* Monthly Trends (bar chart) */}
           {analytics.monthlyTrends && analytics.monthlyTrends.length > 0 && (
             <>
-              <h3 className="font-display text-lg font-semibold mb-3">Monthly Activity</h3>
-              <div className="rounded-xl border border-border bg-card p-6 mb-6">
-                <div className="flex items-end gap-2 h-40">
+              <h3 className="font-display text-base sm:text-lg font-semibold mb-3">Monthly Activity</h3>
+              <div className="rounded-xl border border-border bg-card p-4 sm:p-6 mb-5 sm:mb-6 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                <div className="flex items-end gap-1.5 sm:gap-2 h-32 sm:h-40 min-w-max sm:min-w-0">
                   {analytics.monthlyTrends.map((m) => {
                     const maxAttempts = Math.max(...analytics.monthlyTrends!.map((t) => t.attempts), 1);
                     const heightPct = (m.attempts / maxAttempts) * 100;
                     return (
-                      <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground font-mono">{m.attempts}</span>
+                      <div key={m.month} className="flex-1 min-w-8 sm:min-w-0 flex flex-col items-center gap-0.5 sm:gap-1">
+                        <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono">{m.attempts}</span>
                         <div
                           className="w-full rounded-t bg-primary/80 transition-all min-h-[4px]"
                           style={{ height: `${heightPct}%` }}
                           title={`${m.month}: ${m.attempts} attempts, ${Math.round(m.avgScore)}% avg`}
                         />
-                        <span className="text-[10px] text-muted-foreground">{m.month}</span>
+                        <span className="text-[9px] sm:text-[10px] text-muted-foreground truncate max-w-full">{m.month}</span>
                       </div>
                     );
                   })}
@@ -202,11 +202,11 @@ export default function OverviewPage() {
           {/* Department breakdown */}
           {analytics.departmentStats.length > 0 && (
             <>
-              <h3 className="font-display text-lg font-semibold mb-3">
+              <h3 className="font-display text-base sm:text-lg font-semibold mb-3">
                 Department Breakdown
               </h3>
-              <div className="rounded-xl border border-border overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="rounded-xl border border-border overflow-x-auto -mx-4 sm:mx-0 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+                <table className="w-full text-sm min-w-[280px]">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left px-4 py-3 font-medium text-muted-foreground">Department</th>
@@ -233,7 +233,7 @@ export default function OverviewPage() {
       {/* Placeholder when analytics not available */}
       {!isAnalyticsLoading && !analytics && (
         <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
-          <h3 className="font-display text-lg font-semibold mb-3">
+          <h3 className="font-display text-base sm:text-lg font-semibold mb-3">
             Performance Overview
           </h3>
           {isLoading ? (

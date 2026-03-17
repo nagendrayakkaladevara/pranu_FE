@@ -45,20 +45,20 @@ export default function OverviewPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold animate-fade-up">
+    <div className="p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 pb-safe">
+      <div className="animate-fade-up">
+        <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">
           Welcome back
         </h2>
         <p
-          className="text-muted-foreground text-sm mt-1 animate-fade-up"
+          className="text-muted-foreground text-sm mt-0.5 sm:mt-1 animate-fade-up"
           style={{ animationDelay: "0.05s" }}
         >
           Here's an overview of your question bank and quizzes.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Questions"
           value={counts.totalQuestions}

@@ -54,20 +54,20 @@ export default function OverviewPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold animate-fade-up">
+    <div className="p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 pb-safe">
+      <div className="animate-fade-up">
+        <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">
           Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}
         </h2>
         <p
-          className="text-muted-foreground text-sm mt-1 animate-fade-up"
+          className="text-muted-foreground text-sm mt-0.5 sm:mt-1 animate-fade-up"
           style={{ animationDelay: "0.05s" }}
         >
           Here's your quiz performance overview.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Attempts"
           value={stats.totalAttempts}
@@ -99,14 +99,15 @@ export default function OverviewPage() {
         className="animate-fade-up"
         style={{ animationDelay: "0.1s" }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-semibold">
+        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+          <h3 className="font-display text-base sm:text-lg font-semibold">
             Active Quizzes
           </h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/student/quizzes")}
+            className="shrink-0 min-h-11 touch-manipulation"
           >
             View all
             <ArrowRight className="size-4 ml-1" />
@@ -130,15 +131,15 @@ export default function OverviewPage() {
             {upcomingQuizzes.map((quiz) => (
               <div
                 key={quiz.id}
-                className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4"
+                className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
               >
                 <div className="min-w-0 flex-1">
                   <h4 className="font-display font-semibold text-sm truncate">
                     {quiz.title}
                   </h4>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Clock className="size-3" />
+                      <Clock className="size-3 shrink-0" />
                       {quiz.durationMinutes}m
                     </span>
                     <span>{quiz.totalMarks} marks</span>
@@ -153,6 +154,7 @@ export default function OverviewPage() {
                 {quiz.canAttempt !== false && (
                   <Button
                     size="sm"
+                    className="w-full sm:w-auto min-h-11 touch-manipulation shrink-0"
                     onClick={() =>
                       navigate(`/student/quizzes/${quiz.id}/attempt`, {
                         state: { quizTitle: quiz.title, durationMinutes: quiz.durationMinutes },
@@ -170,9 +172,14 @@ export default function OverviewPage() {
 
       {/* Recent Performance */}
       <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-semibold">Recent Performance</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/student/results")}>
+        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+          <h3 className="font-display text-base sm:text-lg font-semibold">Recent Performance</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/student/results")}
+            className="shrink-0 min-h-11 touch-manipulation"
+          >
             View all <ArrowRight className="size-4 ml-1" />
           </Button>
         </div>
@@ -193,22 +200,22 @@ export default function OverviewPage() {
               const pct = attempt.totalMarks > 0 ? Math.round((attempt.score / attempt.totalMarks) * 100) : 0;
               return (
                 <div key={attempt.id} className="rounded-xl border border-border bg-card p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-display font-semibold text-sm truncate">{attempt.quizTitle}</h4>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h4 className="font-display font-semibold text-sm truncate min-w-0">{attempt.quizTitle}</h4>
                     {attempt.passed != null && (
-                      <Badge variant={attempt.passed ? "default" : "destructive"} className="text-[10px]">
+                      <Badge variant={attempt.passed ? "default" : "destructive"} className="text-[10px] shrink-0">
                         {attempt.passed ? "PASSED" : "FAILED"}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0 h-2 rounded-full bg-muted overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${attempt.passed ? "bg-green-500" : "bg-red-500"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+                    <span className="text-xs font-mono text-muted-foreground whitespace-nowrap shrink-0">
                       {attempt.score}/{attempt.totalMarks} ({pct}%)
                     </span>
                   </div>
