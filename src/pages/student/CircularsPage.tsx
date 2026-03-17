@@ -140,7 +140,9 @@ export default function CircularsPage() {
               >
                 <div className="min-w-0 flex-1 flex items-center gap-2">
                   {c.isPinned && (
-                    <Pin className="size-3.5 text-primary shrink-0" title="Pinned" />
+                    <span title="Pinned">
+                      <Pin className="size-3.5 text-primary shrink-0" />
+                    </span>
                   )}
                   <div className="min-w-0">
                     <h3 className="font-medium truncate">{c.title}</h3>

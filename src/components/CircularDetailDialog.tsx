@@ -1,4 +1,4 @@
-import type { Circular, TargetType } from "@/types/circular";
+import type { Circular } from "@/types/circular";
 import {
   Dialog,
   DialogContent,

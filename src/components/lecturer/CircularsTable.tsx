@@ -1,5 +1,5 @@
 import { Pin, Pencil, Trash2 } from "lucide-react";
-import type { Circular, CircularType, TargetType, CircularPriority } from "@/types/circular";
+import type { Circular, CircularType, CircularPriority } from "@/types/circular";
 import {
   Table,
   TableBody,
@@ -16,12 +16,6 @@ const TYPE_LABELS: Record<CircularType, string> = {
   CIRCULAR: "Circular",
   NOTICE: "Notice",
   ANNOUNCEMENT: "Announcement",
-};
-
-const TARGET_LABELS: Record<TargetType, string> = {
-  CLASS: "Class",
-  DEPARTMENT: "Department",
-  ALL: "All",
 };
 
 const PRIORITY_VARIANTS: Record<CircularPriority, "outline" | "default" | "secondary" | "destructive"> = {
@@ -44,7 +38,7 @@ function formatDate(iso: string) {
 function targetDisplay(c: Circular): string {
   if (c.targetType === "CLASS" && c.targetClassId) {
     const ref = typeof c.targetClassId === "object" ? c.targetClassId : null;
-    return ref?.name ?? c.targetClassId ?? "—";
+    return ref?.name ?? (typeof c.targetClassId === "string" ? c.targetClassId : "—");
   }
   if (c.targetType === "DEPARTMENT") return c.targetDepartment ?? "—";
   return "All Students";
@@ -123,7 +117,9 @@ export function CircularsTable({
               <TableCell>
                 <div className="flex items-center gap-2">
                   {c.isPinned && (
-                    <Pin className="size-3.5 text-primary shrink-0" title="Pinned" />
+                    <span title="Pinned">
+                      <Pin className="size-3.5 text-primary shrink-0" />
+                    </span>
                   )}
                   <span className="font-medium truncate max-w-[200px]" title={c.title}>
                     {c.title}
