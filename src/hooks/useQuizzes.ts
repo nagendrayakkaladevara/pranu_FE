@@ -87,6 +87,8 @@ export function useQuizzes(initialParams?: QuizQueryParams) {
     onSuccess: invalidate,
   });
 
+  const getQuizDetail = useCallback((quizId: string) => api.get<Quiz>(`/quizzes/${quizId}`), []);
+
   return {
     quizzes: data?.quizzes ?? [],
     page,
@@ -103,7 +105,7 @@ export function useQuizzes(initialParams?: QuizQueryParams) {
     updateQuiz: (id: string, payload: UpdateQuizPayload) =>
       updateMutation.mutateAsync({ id, payload }),
     deleteQuiz: (id: string) => deleteMutation.mutateAsync(id),
-    getQuizDetail: (id: string) => api.get<Quiz>(`/quizzes/${id}`),
+    getQuizDetail,
     addQuestions: (quizId: string, payload: AddQuestionsPayload) =>
       addQuestionsMutation.mutateAsync({ quizId, payload }),
     publishToClasses: (quizId: string, payload: PublishQuizPayload) =>

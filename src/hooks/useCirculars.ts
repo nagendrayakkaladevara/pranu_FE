@@ -50,6 +50,8 @@ export function useCirculars(initialParams?: CircularQueryParams) {
     queryClient.invalidateQueries({ queryKey: ["circulars"] });
   }, [queryClient]);
 
+  const getCircular = useCallback((circularId: string) => api.get<Circular>(`/circulars/${circularId}`), []);
+
   const createMutation = useMutation({
     mutationFn: (payload: CreateCircularPayload) => api.post<Circular>("/circulars", payload),
     onSuccess: invalidate,
@@ -86,7 +88,7 @@ export function useCirculars(initialParams?: CircularQueryParams) {
     updateCircular: (id: string, payload: UpdateCircularPayload) =>
       updateMutation.mutateAsync({ id, payload }),
     deleteCircular: (id: string) => deleteMutation.mutateAsync(id),
-    getCircular: (id: string) => api.get<Circular>(`/circulars/${id}`),
+    getCircular,
     refetch,
   };
 }
