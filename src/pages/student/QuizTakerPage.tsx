@@ -51,9 +51,12 @@ export default function QuizTakerPage() {
 
         if (!quizTitle || !durationMinutes) {
           try {
-            const quizList = await api.get<AssignedQuiz[]>(
+            const data = await api.get<{ active?: AssignedQuiz[]; upcoming?: AssignedQuiz[] } | AssignedQuiz[]>(
               `/exam/quizzes`,
             );
+            const quizList = Array.isArray(data)
+              ? data
+              : [...(data.active ?? []), ...(data.upcoming ?? [])];
             const quiz = quizList.find((q: AssignedQuiz) => q.id === quizId);
             if (quiz) {
               quizTitle = quizTitle || quiz.title;

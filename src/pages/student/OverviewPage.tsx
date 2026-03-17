@@ -10,39 +10,37 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import type { StudentStatsResponse, StudentStatsSummary, AssignedQuiz, AttemptSummary, PaginatedAttempts } from "@/types/student";
+import { useStudentQuizzes } from "@/hooks/useStudentQuizzes";
+import type { StudentStatsResponse, StudentStatsSummary, AttemptSummary, PaginatedAttempts } from "@/types/student";
 import { StatCard } from "@/components/admin/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { QuizCountdown } from "@/components/student/QuizCountdown";
 
 export default function OverviewPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { active: activeQuizzes, upcoming: upcomingQuizzes, isLoading: quizzesLoading, refetch: refetchQuizzes } = useStudentQuizzes();
   const [stats, setStats] = useState<StudentStatsSummary>({
     totalAttempts: 0,
     averagePercentage: 0,
     quizzesPassed: 0,
     quizzesFailed: 0,
   });
-  const [upcomingQuizzes, setUpcomingQuizzes] = useState<AssignedQuiz[]>([]);
   const [recentAttempts, setRecentAttempts] = useState<AttemptSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsResp, quizzesData, attemptsData] = await Promise.all([
+        const [statsResp, attemptsData] = await Promise.all([
           api.get<StudentStatsResponse>("/exam/my-stats"),
-          api.get<AssignedQuiz[]>(
-            "/exam/quizzes?availability=ACTIVE&limit=5&sortBy=startTime:asc",
-          ),
           api.get<PaginatedAttempts>(
             "/exam/attempts?limit=5&sortBy=submittedAt:desc",
           ),
         ]);
         setStats(statsResp.summary);
-        setUpcomingQuizzes(quizzesData);
         setRecentAttempts(attemptsData.attempts);
       } catch {
         // Keep defaults
@@ -52,6 +50,8 @@ export default function OverviewPage() {
     }
     fetchData();
   }, []);
+
+  const isLoadingAny = isLoading || quizzesLoading;
 
   return (
     <div className="p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 pb-safe">
@@ -94,6 +94,81 @@ export default function OverviewPage() {
         />
       </div>
 
+      {/* Upcoming Quizzes */}
+      {upcomingQuizzes.length > 0 && (
+        <div
+          className="animate-fade-up"
+          style={{ animationDelay: "0.08s" }}
+        >
+          <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+            <h3 className="font-display text-base sm:text-lg font-semibold">
+              Upcoming Quizzes
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/student/quizzes")}
+              className="shrink-0 min-h-11 touch-manipulation"
+            >
+              View all
+              <ArrowRight className="size-4 ml-1" />
+            </Button>
+          </div>
+
+          {quizzesLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingQuizzes.slice(0, 5).map((quiz) => (
+                <div
+                  key={quiz.id}
+                  className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-semibold text-sm truncate">
+                      {quiz.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="size-3 shrink-0" />
+                        {quiz.durationMinutes}m
+                      </span>
+                      <span>{quiz.totalMarks} marks</span>
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]"
+                      >
+                        UPCOMING
+                      </Badge>
+                    </div>
+                    {quiz.startTime && (
+                      <div className="mt-2">
+                        <QuizCountdown
+                          startTime={quiz.startTime}
+                          onReachZero={refetchQuizzes}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto min-h-11 touch-manipulation shrink-0 opacity-60 cursor-not-allowed"
+                    disabled
+                  >
+                    Starts soon
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Active Quizzes */}
       <div
         className="animate-fade-up"
@@ -114,13 +189,13 @@ export default function OverviewPage() {
           </Button>
         </div>
 
-        {isLoading ? (
+        {isLoadingAny ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-20 rounded-xl" />
             ))}
           </div>
-        ) : upcomingQuizzes.length === 0 ? (
+        ) : activeQuizzes.length === 0 ? (
           <div className="text-center py-12 rounded-xl border border-border bg-card">
             <p className="text-sm text-muted-foreground">
               No active quizzes right now.
@@ -128,7 +203,7 @@ export default function OverviewPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {upcomingQuizzes.map((quiz) => (
+            {activeQuizzes.slice(0, 5).map((quiz) => (
               <div
                 key={quiz.id}
                 className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"

@@ -27,6 +27,7 @@ export default function MyQuizzesPage() {
     setAvailability,
     setSearch,
     setPage,
+    refetch,
   } = useAssignedQuizzes();
 
   const [searchInput, setSearchInput] = useState("");
@@ -110,6 +111,7 @@ export default function MyQuizzesPage() {
                 key={quiz.id}
                 quiz={quiz}
                 onStartQuiz={handleStartQuiz}
+                onCountdownReachZero={refetch}
               />
             ))}
           </div>

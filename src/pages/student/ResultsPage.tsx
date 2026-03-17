@@ -4,9 +4,9 @@ import { useAttemptResult } from "@/hooks/useAttemptDetail";
 import type { AttemptSummary } from "@/types/student";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Trophy, Clock, Target, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { AttemptsTable } from "@/components/student/AttemptsTable";
+import { ScoreCard } from "@/components/student/ScoreCard";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 
 export default function ResultsPage() {
@@ -56,17 +56,6 @@ export default function ResultsPage() {
       );
     }
 
-    const scorePercentage =
-      result.totalMarks > 0
-        ? Math.round((result.score / result.totalMarks) * 100)
-        : 0;
-
-    const formatDuration = (seconds: number) => {
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      return `${m}m ${s}s`;
-    };
-
     return (
       <div className="p-6 space-y-6 animate-fade-up">
         <div className="flex items-center gap-3">
@@ -77,44 +66,7 @@ export default function ResultsPage() {
           <h2 className="font-display text-xl font-bold">{result.quizTitle}</h2>
         </div>
 
-        {/* Score summary */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-            <div className="text-center sm:text-left">
-              <p className="text-sm text-muted-foreground mb-1">Your Score</p>
-              <p className="font-display text-4xl font-bold">
-                {result.score}
-                <span className="text-lg text-muted-foreground">
-                  /{result.totalMarks}
-                </span>
-              </p>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap">
-              <Badge
-                variant="outline"
-                className={
-                  result.passed
-                    ? "bg-green-500/15 text-green-400 border-green-500/30"
-                    : "bg-red-500/15 text-red-400 border-red-500/30"
-                }
-              >
-                {result.passed ? "PASSED" : "FAILED"}
-              </Badge>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Trophy className="size-4" />
-                <span>{scorePercentage}%</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="size-4" />
-                <span>{formatDuration(result.timeTaken)}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Target className="size-4" />
-                <span>Pass: {result.passMarks} marks</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ScoreCard result={result} />
 
         {/* Grading status */}
         {result.pendingGrading && (

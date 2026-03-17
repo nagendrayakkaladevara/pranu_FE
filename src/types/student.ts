@@ -14,6 +14,12 @@ export interface AssignedQuiz extends Quiz {
   availability?: QuizAvailability;
 }
 
+// Backend response from GET /v1/exam/quizzes (active/upcoming split)
+export interface StudentQuizzesResponse {
+  active: AssignedQuiz[];
+  upcoming: AssignedQuiz[];
+}
+
 // ── Attempt ──────────────────────────────────────────────────
 
 export interface AttemptAnswer {

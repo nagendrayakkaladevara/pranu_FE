@@ -3,7 +3,9 @@ import { api } from "@/lib/api";
 import type {
   AssignedQuiz,
   QuizAvailability,
+  StudentQuizzesResponse,
 } from "@/types/student";
+
 function computeAvailability(quiz: AssignedQuiz): QuizAvailability {
   const now = Date.now();
   if (quiz.startTime && new Date(quiz.startTime).getTime() > now) return "UPCOMING";
@@ -20,6 +22,19 @@ function enrichQuiz(quiz: AssignedQuiz): AssignedQuiz {
     attemptCount: quiz.attemptCount ?? 0,
     lastAttemptStatus: quiz.lastAttemptStatus ?? null,
   };
+}
+
+function isActiveUpcomingResponse(
+  data: unknown
+): data is StudentQuizzesResponse {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "active" in data &&
+    "upcoming" in data &&
+    Array.isArray((data as StudentQuizzesResponse).active) &&
+    Array.isArray((data as StudentQuizzesResponse).upcoming)
+  );
 }
 
 export function useAssignedQuizzes(initialLimit = 10) {
@@ -40,25 +55,49 @@ export function useAssignedQuizzes(initialLimit = 10) {
     setIsLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      params.set("limit", String(limit));
-      if (availability) params.set("availability", availability);
-      if (search) params.set("search", search);
-      params.set("sortBy", "startTime:asc");
-
-      const data = await api.get<AssignedQuiz[]>(
-        `/exam/quizzes?${params}`,
+      const data = await api.get<StudentQuizzesResponse | AssignedQuiz[]>(
+        "/exam/quizzes"
       );
-      // Backend returns a plain array; enrich with computed fields
-      const enriched = data.map(enrichQuiz);
-      // Client-side availability filter (backend may not support it)
-      const filtered = availability
-        ? enriched.filter((q) => q.availability === availability)
-        : enriched;
-      setQuizzes(filtered);
-      setTotalPages(1);
-      setTotalResults(filtered.length);
+
+      let enriched: AssignedQuiz[];
+
+      if (isActiveUpcomingResponse(data)) {
+        const merged = [
+          ...data.active.map((q) => ({ ...q, availability: "ACTIVE" as const })),
+          ...data.upcoming.map((q) => ({ ...q, availability: "UPCOMING" as const })),
+        ];
+        enriched = merged.map(enrichQuiz);
+      } else {
+        const arr = Array.isArray(data) ? data : [];
+        enriched = arr.map(enrichQuiz);
+      }
+
+      // Client-side filters
+      let filtered = enriched;
+      if (availability) {
+        filtered = filtered.filter((q) => q.availability === availability);
+      }
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter((q) =>
+          q.title.toLowerCase().includes(s)
+        );
+      }
+
+      // Sort by startTime ascending
+      filtered.sort((a, b) => {
+        const aT = a.startTime ? new Date(a.startTime).getTime() : 0;
+        const bT = b.startTime ? new Date(b.startTime).getTime() : 0;
+        return aT - bT;
+      });
+
+      const total = filtered.length;
+      const start = (page - 1) * limit;
+      const paginated = filtered.slice(start, start + limit);
+
+      setQuizzes(paginated);
+      setTotalPages(Math.max(1, Math.ceil(total / limit)));
+      setTotalResults(total);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch quizzes",

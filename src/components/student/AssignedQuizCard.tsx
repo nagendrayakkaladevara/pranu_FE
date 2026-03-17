@@ -1,6 +1,7 @@
 import { Clock, FileQuestion, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { QuizCountdown } from "@/components/student/QuizCountdown";
 import type { AssignedQuiz } from "@/types/student";
 
 const AVAILABILITY_CLASSES: Record<string, string> = {
@@ -18,9 +19,10 @@ const ATTEMPT_STATUS_CLASSES: Record<string, string> = {
 interface AssignedQuizCardProps {
   quiz: AssignedQuiz;
   onStartQuiz: (quiz: AssignedQuiz) => void;
+  onCountdownReachZero?: () => void;
 }
 
-export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
+export function AssignedQuizCard({ quiz, onStartQuiz, onCountdownReachZero }: AssignedQuizCardProps) {
   const questionCount =
     quiz._count?.questions ??
     (Array.isArray(quiz.questions) ? quiz.questions.length : 0);
@@ -100,9 +102,24 @@ export function AssignedQuizCard({ quiz, onStartQuiz }: AssignedQuizCardProps) {
         )}
       </div>
 
+      {quiz.availability === "UPCOMING" && quiz.startTime && (
+        <div className="mb-4">
+          <QuizCountdown
+            startTime={quiz.startTime}
+            onReachZero={onCountdownReachZero}
+          />
+        </div>
+      )}
+
       {(quiz.canAttempt !== false) && quiz.availability === "ACTIVE" && (
         <Button className="w-full" onClick={() => onStartQuiz(quiz)}>
           Start Quiz
+        </Button>
+      )}
+
+      {quiz.availability === "UPCOMING" && (
+        <Button className="w-full" variant="outline" disabled>
+          Starts soon
         </Button>
       )}
     </div>
