@@ -71,6 +71,32 @@ const notificationsStore: Array<{
     createdAt: new Date(Date.now() - 1800_000).toISOString(),
     updatedAt: new Date(Date.now() - 1800_000).toISOString(),
   },
+  {
+    id: "notif-3",
+    userId: "1",
+    type: "ATTEMPT_GRADED",
+    title: "Quiz graded: Math Quiz 1",
+    message: "You scored 85/100.",
+    link: "/exam/attempts/att-1",
+    metadata: { attemptId: "att-1" },
+    read: false,
+    readAt: null,
+    createdAt: new Date(Date.now() - 900_000).toISOString(),
+    updatedAt: new Date(Date.now() - 900_000).toISOString(),
+  },
+  {
+    id: "notif-4",
+    userId: "1",
+    type: "CLASS_ENROLLED",
+    title: "New class enrollment",
+    message: "You have been enrolled in CSE-3A.",
+    link: "/classes/class-1",
+    metadata: { classId: "class-1" },
+    read: false,
+    readAt: null,
+    createdAt: new Date(Date.now() - 600_000).toISOString(),
+    updatedAt: new Date(Date.now() - 600_000).toISOString(),
+  },
 ];
 
 export const handlers = [
@@ -80,6 +106,20 @@ export const handlers = [
     if (body.email === "admin@test.com" && body.password === "password") {
       return HttpResponse.json({
         user: { id: "1", name: "Admin User", email: "admin@test.com", role: "ADMIN", isActive: true },
+        tokens: {
+          access: { token: "mock-token", expires: new Date(Date.now() + 3600_000).toISOString() },
+        },
+      });
+    }
+    if (body.email === "lecturer@test.com" && body.password === "password") {
+      return HttpResponse.json({
+        user: {
+          id: "2",
+          name: "Dr. Smith",
+          email: "lecturer@test.com",
+          role: "LECTURER",
+          isActive: true,
+        },
         tokens: {
           access: { token: "mock-token", expires: new Date(Date.now() + 3600_000).toISOString() },
         },
@@ -177,21 +217,63 @@ export const handlers = [
     });
   }),
 
-  // Circulars - List
+  // Circulars - List (aligns with backend: page, limit, type, targetType, targetClassId, targetDepartment, priority, isPinned, myOnly, sortBy)
   http.get(`${API_BASE}/circulars`, ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page")) || 1;
     const limit = Number(url.searchParams.get("limit")) || 10;
     const type = url.searchParams.get("type");
     const targetType = url.searchParams.get("targetType");
+    const targetClassId = url.searchParams.get("targetClassId");
+    const targetDepartment = url.searchParams.get("targetDepartment");
     const priority = url.searchParams.get("priority");
+    const isPinnedParam = url.searchParams.get("isPinned");
     const myOnly = url.searchParams.get("myOnly") === "true";
+    const sortBy = url.searchParams.get("sortBy");
 
     let filtered = [...circularsStore];
     if (type) filtered = filtered.filter((c) => c.type === type);
     if (targetType) filtered = filtered.filter((c) => c.targetType === targetType);
+    if (targetClassId) filtered = filtered.filter((c) => c.targetClassId?.id === targetClassId);
+    if (targetDepartment)
+      filtered = filtered.filter(
+        (c) => c.targetDepartment?.toLowerCase().includes(targetDepartment.toLowerCase()),
+      );
     if (priority) filtered = filtered.filter((c) => c.priority === priority);
-    if (myOnly) filtered = filtered.filter((c) => c.publishedBy.id === "2"); // mock lecturer
+    if (isPinnedParam === "true") filtered = filtered.filter((c) => c.isPinned);
+    else if (isPinnedParam === "false") filtered = filtered.filter((c) => !c.isPinned);
+
+    if (myOnly) {
+      try {
+        const userStr =
+          typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+        const user = userStr ? (JSON.parse(userStr) as { id?: string }) : null;
+        if (user?.id) filtered = filtered.filter((c) => c.publishedBy.id === user.id);
+      } catch {
+        filtered = filtered.filter((c) => c.publishedBy.id === "2");
+      }
+    }
+
+    // Sort: default pinned first, then by date. sortBy format: field:asc or field:desc
+    const [sortField, sortDir] = sortBy?.split(":") ?? [];
+    filtered.sort((a, b) => {
+      if (sortField) {
+        const aVal = (a as Record<string, unknown>)[sortField];
+        const bVal = (b as Record<string, unknown>)[sortField];
+        let cmp: number;
+        if (typeof aVal === "boolean" && typeof bVal === "boolean") {
+          cmp = (aVal ? 1 : 0) - (bVal ? 1 : 0);
+        } else if (typeof aVal === "string" && typeof bVal === "string") {
+          cmp = aVal.localeCompare(bVal, undefined, { numeric: true });
+        } else {
+          cmp = String(aVal ?? "").localeCompare(String(bVal ?? ""), undefined, { numeric: true });
+        }
+        return sortDir === "asc" ? cmp : -cmp;
+      }
+      // Default: pinned first, then createdAt desc
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
     const totalResults = filtered.length;
     const totalPages = Math.max(1, Math.ceil(totalResults / limit));
@@ -214,17 +296,28 @@ export const handlers = [
     return HttpResponse.json(c);
   }),
 
-  // Circulars - Create
+  // Circulars - Create (LECTURER only; publishedBy from current user)
   http.post(`${API_BASE}/circulars`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const id = `circ-${Date.now()}`;
     const now = new Date().toISOString();
+    let publishedBy = { id: "2", name: "Dr. Smith", email: "lecturer@test.com" };
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string; name?: string; email?: string }) : null;
+      if (user?.id && user?.name && user?.email) {
+        publishedBy = { id: user.id, name: user.name, email: user.email };
+      }
+    } catch {
+      // Use default when localStorage unavailable
+    }
     const circular = {
       id,
       type: body.type ?? "ANNOUNCEMENT",
       title: String(body.title ?? ""),
       content: String(body.content ?? ""),
-      publishedBy: { id: "2", name: "Dr. Smith", email: "smith@example.com" },
+      publishedBy,
       targetType: body.targetType ?? "ALL",
       targetClassId: body.targetType === "CLASS" && body.targetClassId
         ? { id: String(body.targetClassId), name: "CSE-3A", department: "Computer Science" }
@@ -239,14 +332,25 @@ export const handlers = [
     return HttpResponse.json(circular, { status: 201 });
   }),
 
-  // Circulars - Update
+  // Circulars - Update (LECTURER only, must be the publisher)
   http.patch(`${API_BASE}/circulars/:circularId`, async ({ params, request }) => {
     const idx = circularsStore.findIndex((x) => x.id === params.circularId);
     if (idx < 0) return HttpResponse.json({ message: "Not found" }, { status: 404 });
+    const circular = circularsStore[idx];
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string; role?: string }) : null;
+      if (user?.id && user?.role === "LECTURER" && circular.publishedBy.id !== user.id) {
+        return HttpResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      // Allow in test setups without localStorage
+    }
     const body = (await request.json()) as Record<string, unknown>;
     const now = new Date().toISOString();
     circularsStore[idx] = {
-      ...circularsStore[idx],
+      ...circular,
       ...(body.title != null && { title: String(body.title) }),
       ...(body.content != null && { content: String(body.content) }),
       ...(body.priority != null && { priority: String(body.priority) }),
@@ -256,26 +360,57 @@ export const handlers = [
     return HttpResponse.json(circularsStore[idx]);
   }),
 
-  // Circulars - Delete
+  // Circulars - Delete (LECTURER only, must be the publisher)
   http.delete(`${API_BASE}/circulars/:circularId`, ({ params }) => {
     const idx = circularsStore.findIndex((x) => x.id === params.circularId);
     if (idx < 0) return HttpResponse.json({ message: "Not found" }, { status: 404 });
+    const circular = circularsStore[idx];
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string; role?: string }) : null;
+      if (user?.id && user?.role === "LECTURER" && circular.publishedBy.id !== user.id) {
+        return HttpResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      // Allow in test setups without localStorage
+    }
     circularsStore.splice(idx, 1);
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // Notifications - List
+  // Notifications - List (aligns with backend: page, limit, read, type, sortBy)
+  // Backend returns only the current user's notifications; mock filters by userId from localStorage
   http.get(`${API_BASE}/notifications`, ({ request }) => {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page")) || 1;
     const limit = Number(url.searchParams.get("limit")) || 10;
     const readFilter = url.searchParams.get("read");
+    const typeFilter = url.searchParams.get("type");
+    const sortBy = url.searchParams.get("sortBy");
 
     let filtered = [...notificationsStore];
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string }) : null;
+      if (user?.id) {
+        filtered = filtered.filter((n) => n.userId === user.id);
+      }
+    } catch {
+      // No user filter if localStorage unavailable or parse fails
+    }
     if (readFilter === "true") filtered = filtered.filter((n) => n.read);
     else if (readFilter === "false") filtered = filtered.filter((n) => !n.read);
+    if (typeFilter) filtered = filtered.filter((n) => n.type === typeFilter);
 
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const [sortField, sortDir] = sortBy?.split(":") ?? ["createdAt", "desc"];
+    filtered.sort((a, b) => {
+      const aVal = (a as Record<string, unknown>)[sortField];
+      const bVal = (b as Record<string, unknown>)[sortField];
+      const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
     const totalResults = filtered.length;
     const totalPages = Math.max(1, Math.ceil(totalResults / limit));
@@ -291,28 +426,64 @@ export const handlers = [
     });
   }),
 
-  // Notifications - Unread count
+  // Notifications - Unread count (backend returns count for current user only)
   http.get(`${API_BASE}/notifications/unread-count`, () => {
-    const count = notificationsStore.filter((n) => !n.read).length;
+    let list = notificationsStore;
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string }) : null;
+      if (user?.id) list = list.filter((n) => n.userId === user.id);
+    } catch {
+      // No user filter
+    }
+    const count = list.filter((n) => !n.read).length;
     return HttpResponse.json({ count });
   }),
 
-  // Notifications - Mark one as read
+  // Notifications - Mark one as read (404 if not found or not owned by current user)
   http.patch(`${API_BASE}/notifications/:notificationId/read`, ({ params }) => {
     const idx = notificationsStore.findIndex((n) => n.id === params.notificationId);
     if (idx < 0) return HttpResponse.json({ message: "Notification not found" }, { status: 404 });
+    const notification = notificationsStore[idx];
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string }) : null;
+      if (user?.id && notification.userId !== user.id) {
+        return HttpResponse.json(
+          { message: "Notification not found" },
+          { status: 404 },
+        );
+      }
+    } catch {
+      // Allow if localStorage unavailable (e.g. in some test setups)
+    }
     const now = new Date().toISOString();
-    notificationsStore[idx] = { ...notificationsStore[idx], read: true, readAt: now, updatedAt: now };
+    notificationsStore[idx] = { ...notification, read: true, readAt: now, updatedAt: now };
     return HttpResponse.json(notificationsStore[idx]);
   }),
 
-  // Notifications - Mark all as read
+  // Notifications - Mark all as read (backend marks only current user's notifications)
   http.patch(`${API_BASE}/notifications/read-all`, () => {
     const now = new Date().toISOString();
+    let targetIds: Set<string> | null = null;
+    try {
+      const userStr =
+        typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? (JSON.parse(userStr) as { id?: string }) : null;
+      if (user?.id) {
+        targetIds = new Set(notificationsStore.filter((n) => n.userId === user.id).map((n) => n.id));
+      }
+    } catch {
+      // Mark all if localStorage unavailable
+    }
     notificationsStore.forEach((n) => {
-      n.read = true;
-      n.readAt = now;
-      n.updatedAt = now;
+      if (!targetIds || targetIds.has(n.id)) {
+        n.read = true;
+        n.readAt = now;
+        n.updatedAt = now;
+      }
     });
     return new HttpResponse(null, { status: 204 });
   }),

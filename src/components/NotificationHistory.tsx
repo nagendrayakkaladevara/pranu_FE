@@ -65,8 +65,8 @@ export function NotificationHistory() {
         onError: () => toast.error("Failed to mark notification as read"),
       });
     }
-    const path = getNotificationRoute(n, user.role);
-    navigate(path);
+    const { path, state } = getNotificationRoute(n, user.role);
+    navigate(path, { state });
     setOpen(false);
   };
 

@@ -1,13 +1,8 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Search, Upload } from "lucide-react";
-import type {
-  Question,
-  QuestionType,
-  Difficulty,
-  CreateQuestionPayload,
-  UpdateQuestionPayload,
-} from "@/types/lecturer";
+import type { Question, QuestionType, Difficulty } from "@/types/lecturer";
 import { useQuestions } from "@/hooks/useQuestions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,12 +22,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QuestionsTable } from "@/components/lecturer/QuestionsTable";
-import { QuestionFormDialog } from "@/components/lecturer/QuestionFormDialog";
 import { BulkQuestionImportDialog } from "@/components/lecturer/BulkQuestionImportDialog";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 import { ErrorState } from "@/components/ErrorState";
 
 export default function QuestionsPage() {
+  const navigate = useNavigate();
   const {
     questions,
     page,
@@ -47,17 +42,25 @@ export default function QuestionsPage() {
     setSearch,
     setPage,
     createQuestion,
-    updateQuestion,
     deleteQuestion,
     refetch,
   } = useQuestions();
 
-  const [formOpen, setFormOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Question | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+
+  const handleCreate = useCallback(() => {
+    navigate("/lecturer/questions/new");
+  }, [navigate]);
+
+  const handleEdit = useCallback(
+    (q: Question) => {
+      navigate(`/lecturer/questions/${q.id}/edit`);
+    },
+    [navigate],
+  );
 
   const handleSearchSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -65,27 +68,6 @@ export default function QuestionsPage() {
       setSearch(searchInput);
     },
     [searchInput, setSearch],
-  );
-
-  const handleEdit = useCallback((q: Question) => {
-    setEditingQuestion(q);
-    setFormOpen(true);
-  }, []);
-
-  const handleCreate = useCallback(() => {
-    setEditingQuestion(null);
-    setFormOpen(true);
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (data: CreateQuestionPayload | UpdateQuestionPayload) => {
-      if (editingQuestion) {
-        await updateQuestion(editingQuestion.id, data as UpdateQuestionPayload);
-      } else {
-        await createQuestion(data as CreateQuestionPayload);
-      }
-    },
-    [editingQuestion, updateQuestion, createQuestion],
   );
 
   const handleDelete = useCallback(async () => {
@@ -188,14 +170,6 @@ export default function QuestionsPage() {
           />
         )}
       </div>
-
-      {/* Create/Edit Dialog */}
-      <QuestionFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        question={editingQuestion}
-        onSubmit={handleFormSubmit}
-      />
 
       {/* Delete Confirmation */}
       <Dialog

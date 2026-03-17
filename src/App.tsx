@@ -28,6 +28,8 @@ const OverviewPage = lazy(() => import("@/pages/admin/OverviewPage"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const ClassesPage = lazy(() => import("@/pages/admin/ClassesPage"));
 const AdminCircularsPage = lazy(() => import("@/pages/admin/CircularsPage"));
+const ClassFormPage = lazy(() => import("@/pages/admin/ClassFormPage"));
+const UserFormPage = lazy(() => import("@/pages/admin/UserFormPage"));
 
 // Lecturer
 const LecturerLayout = lazy(() =>
@@ -36,8 +38,11 @@ const LecturerLayout = lazy(() =>
 const LecturerOverviewPage = lazy(() => import("@/pages/lecturer/OverviewPage"));
 const QuestionsPage = lazy(() => import("@/pages/lecturer/QuestionsPage"));
 const QuizzesPage = lazy(() => import("@/pages/lecturer/QuizzesPage"));
+const QuizFormPage = lazy(() => import("@/pages/lecturer/QuizFormPage"));
 const LecturerCircularsPage = lazy(() => import("@/pages/lecturer/CircularsPage"));
+const CircularFormPage = lazy(() => import("@/pages/lecturer/CircularFormPage"));
 const QuizDetailPage = lazy(() => import("@/pages/lecturer/QuizDetailPage"));
+const QuestionFormPage = lazy(() => import("@/pages/lecturer/QuestionFormPage"));
 const AnalyticsPage = lazy(() => import("@/pages/lecturer/AnalyticsPage"));
 
 // Student
@@ -98,7 +103,11 @@ function App() {
             >
               <Route index element={<OverviewPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="users/new" element={<UserFormPage />} />
+              <Route path="users/:id/edit" element={<UserFormPage />} />
               <Route path="classes" element={<ClassesPage />} />
+              <Route path="classes/new" element={<ClassFormPage />} />
+              <Route path="classes/:id/edit" element={<ClassFormPage />} />
               <Route path="circulars" element={<AdminCircularsPage />} />
               <Route path="about" element={<AboutPage />} />
             </Route>
@@ -114,9 +123,15 @@ function App() {
             >
               <Route index element={<LecturerOverviewPage />} />
               <Route path="questions" element={<QuestionsPage />} />
+              <Route path="questions/new" element={<QuestionFormPage />} />
+              <Route path="questions/:id/edit" element={<QuestionFormPage />} />
               <Route path="quizzes" element={<QuizzesPage />} />
-              <Route path="circulars" element={<LecturerCircularsPage />} />
+              <Route path="quizzes/new" element={<QuizFormPage />} />
+              <Route path="quizzes/:id/edit" element={<QuizFormPage />} />
               <Route path="quizzes/:id" element={<QuizDetailPage />} />
+              <Route path="circulars" element={<LecturerCircularsPage />} />
+              <Route path="circulars/new" element={<CircularFormPage />} />
+              <Route path="circulars/:id/edit" element={<CircularFormPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="about" element={<AboutPage />} />
             </Route>

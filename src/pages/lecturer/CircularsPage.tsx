@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import type {
@@ -6,8 +7,6 @@ import type {
   CircularType,
   TargetType,
   CircularPriority,
-  CreateCircularPayload,
-  UpdateCircularPayload,
 } from "@/types/circular";
 import { useCirculars } from "@/hooks/useCirculars";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CircularsTable } from "@/components/lecturer/CircularsTable";
-import { CircularFormDialog } from "@/components/lecturer/CircularFormDialog";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 import { ErrorState } from "@/components/ErrorState";
 
@@ -48,36 +46,23 @@ export default function CircularsPage() {
     myOnly,
     setMyOnly,
     setPage,
-    createCircular,
-    updateCircular,
     deleteCircular,
     refetch,
   } = useCirculars();
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingCircular, setEditingCircular] = useState<Circular | null>(null);
+  const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState<Circular | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreate = useCallback(() => {
-    setEditingCircular(null);
-    setFormOpen(true);
-  }, []);
+    navigate("/lecturer/circulars/new");
+  }, [navigate]);
 
-  const handleEdit = useCallback((c: Circular) => {
-    setEditingCircular(c);
-    setFormOpen(true);
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (data: CreateCircularPayload | UpdateCircularPayload) => {
-      if (editingCircular) {
-        await updateCircular(editingCircular.id, data as UpdateCircularPayload);
-      } else {
-        await createCircular(data as CreateCircularPayload);
-      }
+  const handleEdit = useCallback(
+    (c: Circular) => {
+      navigate(`/lecturer/circulars/${c.id}/edit`);
     },
-    [editingCircular, updateCircular, createCircular],
+    [navigate],
   );
 
   const handleDelete = useCallback(async () => {
@@ -193,14 +178,6 @@ export default function CircularsPage() {
           />
         )}
       </div>
-
-      {/* Create/Edit Dialog */}
-      <CircularFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        circular={editingCircular}
-        onSubmit={handleFormSubmit}
-      />
 
       {/* Delete Confirmation */}
       <Dialog

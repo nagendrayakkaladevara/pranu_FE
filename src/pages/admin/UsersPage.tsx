@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 import { Plus, Search, Upload } from "lucide-react";
 import type { User, UserRole } from "@/types/auth";
-import type { CreateUserPayload, UpdateUserPayload } from "@/types/admin";
 import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UsersTable } from "@/components/admin/UsersTable";
-import { UserFormDialog } from "@/components/admin/UserFormDialog";
 import { BulkUploadDialog } from "@/components/admin/BulkUploadDialog";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 import { ErrorState } from "@/components/ErrorState";
@@ -46,8 +45,6 @@ export default function UsersPage() {
     setRole,
     setSearch,
     setPage,
-    createUser,
-    updateUser,
     deleteUser,
     bulkCreateUsers,
     toggleActive,
@@ -72,9 +69,8 @@ export default function UsersPage() {
     handler: () => searchInputRef.current?.focus(),
   });
 
-  const [formOpen, setFormOpen] = useState(false);
+  const navigate = useNavigate();
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchInput, setSearchInput] = useState(initialSearch);
@@ -87,26 +83,16 @@ export default function UsersPage() {
     [searchInput, setSearch],
   );
 
-  const handleEdit = useCallback((user: User) => {
-    setEditingUser(user);
-    setFormOpen(true);
-  }, []);
+  const handleEdit = useCallback(
+    (user: User) => {
+      navigate(`/admin/users/${user.id}/edit`);
+    },
+    [navigate],
+  );
 
   const handleCreate = useCallback(() => {
-    setEditingUser(null);
-    setFormOpen(true);
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (data: CreateUserPayload | UpdateUserPayload) => {
-      if (editingUser) {
-        await updateUser(editingUser.id, data as UpdateUserPayload);
-      } else {
-        await createUser(data as CreateUserPayload);
-      }
-    },
-    [editingUser, updateUser, createUser],
-  );
+    navigate("/admin/users/new");
+  }, [navigate]);
 
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
@@ -192,14 +178,6 @@ export default function UsersPage() {
           />
         )}
       </div>
-
-      {/* Create/Edit Dialog */}
-      <UserFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        user={editingUser}
-        onSubmit={handleFormSubmit}
-      />
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

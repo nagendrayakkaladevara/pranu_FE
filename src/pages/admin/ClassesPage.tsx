@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Search } from "lucide-react";
-import type { Class, CreateClassPayload, UpdateClassPayload } from "@/types/admin";
+import type { Class } from "@/types/admin";
 import type { User } from "@/types/auth";
 import { useClasses } from "@/hooks/useClasses";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClassCard } from "@/components/admin/ClassCard";
-import { ClassFormDialog } from "@/components/admin/ClassFormDialog";
 import { AssignUsersDialog } from "@/components/admin/AssignUsersDialog";
 import { BulkAssignDialog } from "@/components/admin/BulkAssignDialog";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
@@ -32,8 +32,6 @@ export default function ClassesPage() {
     error,
     setSearch,
     setPage,
-    createClass,
-    updateClass,
     deleteClass,
     getClassDetail,
     assignStudents,
@@ -42,8 +40,7 @@ export default function ClassesPage() {
     refetch,
   } = useClasses();
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingClass, setEditingClass] = useState<Class | null>(null);
+  const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState<Class | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -63,24 +60,14 @@ export default function ClassesPage() {
   );
 
   const handleCreate = useCallback(() => {
-    setEditingClass(null);
-    setFormOpen(true);
-  }, []);
+    navigate("/admin/classes/new");
+  }, [navigate]);
 
-  const handleEdit = useCallback((cls: Class) => {
-    setEditingClass(cls);
-    setFormOpen(true);
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (data: CreateClassPayload | UpdateClassPayload) => {
-      if (editingClass) {
-        await updateClass(editingClass.id, data as UpdateClassPayload);
-      } else {
-        await createClass(data as CreateClassPayload);
-      }
+  const handleEdit = useCallback(
+    (cls: Class) => {
+      navigate(`/admin/classes/${cls.id}/edit`);
     },
-    [editingClass, updateClass, createClass],
+    [navigate],
   );
 
   const handleDelete = useCallback(async () => {
@@ -186,14 +173,6 @@ export default function ClassesPage() {
           />
         )}
       </div>
-
-      {/* Create/Edit Dialog */}
-      <ClassFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        cls={editingClass}
-        onSubmit={handleFormSubmit}
-      />
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

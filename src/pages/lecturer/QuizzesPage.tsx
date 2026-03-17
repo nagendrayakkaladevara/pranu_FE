@@ -2,12 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
-import type {
-  Quiz,
-  QuizStatus,
-  CreateQuizPayload,
-  UpdateQuizPayload,
-} from "@/types/lecturer";
+import type { Quiz, QuizStatus } from "@/types/lecturer";
 import { useQuizzes } from "@/hooks/useQuizzes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +23,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QuizCard } from "@/components/lecturer/QuizCard";
-import { QuizFormDialog } from "@/components/lecturer/QuizFormDialog";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 import { ErrorState } from "@/components/ErrorState";
 
@@ -50,8 +44,6 @@ export default function QuizzesPage() {
     setStatus,
     setSearch,
     setPage,
-    createQuiz,
-    updateQuiz,
     deleteQuiz,
     refetch,
   } = useQuizzes({ status: initialStatus, search: initialSearch, page: initialPage });
@@ -65,8 +57,6 @@ export default function QuizzesPage() {
     }, { replace: true });
   }, [status, page, setSearchParams]);
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Quiz | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchInput, setSearchInput] = useState(initialSearch);
@@ -80,31 +70,21 @@ export default function QuizzesPage() {
   );
 
   const handleCreate = useCallback(() => {
-    setEditingQuiz(null);
-    setFormOpen(true);
-  }, []);
+    navigate("/lecturer/quizzes/new");
+  }, [navigate]);
 
-  const handleEdit = useCallback((quiz: Quiz) => {
-    setEditingQuiz(quiz);
-    setFormOpen(true);
-  }, []);
+  const handleEdit = useCallback(
+    (quiz: Quiz) => {
+      navigate(`/lecturer/quizzes/${quiz.id}/edit`);
+    },
+    [navigate],
+  );
 
   const handleView = useCallback(
     (quiz: Quiz) => {
       navigate(`/lecturer/quizzes/${quiz.id}`);
     },
     [navigate],
-  );
-
-  const handleFormSubmit = useCallback(
-    async (data: CreateQuizPayload | UpdateQuizPayload) => {
-      if (editingQuiz) {
-        await updateQuiz(editingQuiz.id, data as UpdateQuizPayload);
-      } else {
-        await createQuiz(data as CreateQuizPayload);
-      }
-    },
-    [editingQuiz, updateQuiz, createQuiz],
   );
 
   const handleDelete = useCallback(async () => {
@@ -205,14 +185,6 @@ export default function QuizzesPage() {
           />
         )}
       </div>
-
-      {/* Create/Edit Dialog */}
-      <QuizFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        quiz={editingQuiz}
-        onSubmit={handleFormSubmit}
-      />
 
       {/* Delete Confirmation */}
       <Dialog

@@ -41,7 +41,6 @@ export function useCirculars(initialParams?: CircularQueryParams) {
         targetType,
         priority,
         myOnly: myOnly || undefined,
-        sortBy: "isPinned:desc,createdAt:desc",
       });
       return api.get<PaginatedCirculars>(`/circulars${qs}`);
     },
