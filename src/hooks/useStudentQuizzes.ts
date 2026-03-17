@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import type { AssignedQuiz, StudentQuizzesResponse } from "@/types/student";
+import type {
+  AssignedQuiz,
+  CompletedAssignedQuiz,
+  StudentQuizzesResponse,
+} from "@/types/student";
 
 function isActiveUpcomingResponse(
   data: unknown
@@ -18,6 +22,7 @@ function isActiveUpcomingResponse(
 export function useStudentQuizzes() {
   const [active, setActive] = useState<AssignedQuiz[]>([]);
   const [upcoming, setUpcoming] = useState<AssignedQuiz[]>([]);
+  const [completed, setCompleted] = useState<CompletedAssignedQuiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +37,7 @@ export function useStudentQuizzes() {
       if (isActiveUpcomingResponse(data)) {
         setActive(data.active);
         setUpcoming(data.upcoming);
+        setCompleted(data.completed ?? []);
       } else {
         // Fallback: backend returns array; split by startTime
         const arr = Array.isArray(data) ? data : [];
@@ -51,6 +57,7 @@ export function useStudentQuizzes() {
         }
         setActive(activeList);
         setUpcoming(upcomingList);
+        setCompleted([]);
       }
     } catch (err) {
       setError(
@@ -68,6 +75,7 @@ export function useStudentQuizzes() {
   return {
     active,
     upcoming,
+    completed,
     isLoading,
     error,
     refetch: fetchQuizzes,

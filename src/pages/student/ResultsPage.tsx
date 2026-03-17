@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAttempts } from "@/hooks/useAttempts";
 import { useAttemptResult } from "@/hooks/useAttemptDetail";
 import type { AttemptSummary } from "@/types/student";
@@ -10,12 +11,22 @@ import { ScoreCard } from "@/components/student/ScoreCard";
 import { DataTablePagination } from "@/components/admin/DataTablePagination";
 
 export default function ResultsPage() {
+  const location = useLocation();
   const { attempts, page, totalPages, totalResults, isLoading, setPage } =
     useAttempts();
 
+  const attemptIdFromState = (location.state as { attemptId?: string } | null)
+    ?.attemptId;
+
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(
-    null,
+    attemptIdFromState ?? null,
   );
+
+  useEffect(() => {
+    if (attemptIdFromState) {
+      setSelectedAttemptId(attemptIdFromState);
+    }
+  }, [attemptIdFromState]);
 
   const { result, isLoading: resultLoading } =
     useAttemptResult(selectedAttemptId ?? undefined);

@@ -24,7 +24,7 @@ function enrichQuiz(quiz: AssignedQuiz): AssignedQuiz {
   };
 }
 
-function isActiveUpcomingResponse(
+function isStudentQuizzesResponse(
   data: unknown
 ): data is StudentQuizzesResponse {
   return (
@@ -61,10 +61,11 @@ export function useAssignedQuizzes(initialLimit = 10) {
 
       let enriched: AssignedQuiz[];
 
-      if (isActiveUpcomingResponse(data)) {
+      if (isStudentQuizzesResponse(data)) {
         const merged = [
           ...data.active.map((q) => ({ ...q, availability: "ACTIVE" as const })),
           ...data.upcoming.map((q) => ({ ...q, availability: "UPCOMING" as const })),
+          ...(data.completed ?? []).map((q) => ({ ...q, availability: "ENDED" as const })),
         ];
         enriched = merged.map(enrichQuiz);
       } else {

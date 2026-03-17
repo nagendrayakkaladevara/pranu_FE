@@ -49,6 +49,13 @@ export default function MyQuizzesPage() {
     [navigate],
   );
 
+  const handleViewResult = useCallback(
+    (attemptId: string) => {
+      navigate("/student/results", { state: { attemptId } });
+    },
+    [navigate],
+  );
+
   return (
     <div className="p-6 space-y-6">
       <div className="animate-fade-up">
@@ -111,6 +118,7 @@ export default function MyQuizzesPage() {
                 key={quiz.id}
                 quiz={quiz}
                 onStartQuiz={handleStartQuiz}
+                onViewResult={handleViewResult}
                 onCountdownReachZero={refetch}
               />
             ))}

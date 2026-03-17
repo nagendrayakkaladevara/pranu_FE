@@ -21,7 +21,13 @@ import { QuizCountdown } from "@/components/student/QuizCountdown";
 export default function OverviewPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { active: activeQuizzes, upcoming: upcomingQuizzes, isLoading: quizzesLoading, refetch: refetchQuizzes } = useStudentQuizzes();
+  const {
+    active: activeQuizzes,
+    upcoming: upcomingQuizzes,
+    completed: completedQuizzes,
+    isLoading: quizzesLoading,
+    refetch: refetchQuizzes,
+  } = useStudentQuizzes();
   const [stats, setStats] = useState<StudentStatsSummary>({
     totalAttempts: 0,
     averagePercentage: 0,
@@ -244,6 +250,71 @@ export default function OverviewPage() {
           </div>
         )}
       </div>
+
+      {/* Completed Quizzes */}
+      {completedQuizzes.length > 0 && (
+        <div
+          className="animate-fade-up"
+          style={{ animationDelay: "0.12s" }}
+        >
+          <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+            <h3 className="font-display text-base sm:text-lg font-semibold">
+              Completed Quizzes
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/student/quizzes")}
+              className="shrink-0 min-h-11 touch-manipulation"
+            >
+              View all
+              <ArrowRight className="size-4 ml-1" />
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {completedQuizzes.slice(0, 5).map((quiz) => {
+              const pct =
+                quiz.totalMarks > 0
+                  ? Math.round((quiz.score / quiz.totalMarks) * 100)
+                  : 0;
+              return (
+                <div
+                  key={quiz.id}
+                  className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-semibold text-sm truncate">
+                      {quiz.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                      <span>{quiz.score}/{quiz.totalMarks} ({pct}%)</span>
+                      <Badge
+                        variant="outline"
+                        className="bg-muted text-muted-foreground border-border text-[10px]"
+                      >
+                        COMPLETED
+                      </Badge>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto min-h-11 touch-manipulation shrink-0"
+                    onClick={() =>
+                      navigate("/student/results", {
+                        state: { attemptId: quiz.attemptId },
+                      })
+                    }
+                  >
+                    View Result
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recent Performance */}
       <div className="animate-fade-up" style={{ animationDelay: "0.15s" }}>

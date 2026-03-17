@@ -11,8 +11,10 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement;
   if (resolved === "light") {
     root.classList.add("light");
+    root.classList.remove("dark");
   } else {
     root.classList.remove("light");
+    root.classList.add("dark");
   }
 }
 

@@ -14,10 +14,18 @@ export interface AssignedQuiz extends Quiz {
   availability?: QuizAvailability;
 }
 
-// Backend response from GET /v1/exam/quizzes (active/upcoming split)
+/** Completed quiz with attempt result (from GET /exam/quizzes) */
+export interface CompletedAssignedQuiz extends AssignedQuiz {
+  attemptId: string;
+  score: number;
+  totalMarks: number;
+}
+
+// Backend response from GET /v1/exam/quizzes (active/upcoming/completed split)
 export interface StudentQuizzesResponse {
   active: AssignedQuiz[];
   upcoming: AssignedQuiz[];
+  completed?: CompletedAssignedQuiz[];
 }
 
 // ── Attempt ──────────────────────────────────────────────────

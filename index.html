@@ -7,7 +7,14 @@
         var resolved = stored === 'system'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : (stored || 'dark');
-        if (resolved === 'light') document.documentElement.classList.add('light');
+        var root = document.documentElement;
+        if (resolved === 'light') {
+          root.classList.add('light');
+          root.classList.remove('dark');
+        } else {
+          root.classList.remove('light');
+          root.classList.add('dark');
+        }
       })();
     </script>
     <meta charset="UTF-8" />

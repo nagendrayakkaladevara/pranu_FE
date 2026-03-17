@@ -20,11 +20,13 @@ export function AdminHeader() {
       <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 min-h-[3.5rem]">
         <SidebarTrigger className="-ml-1 size-9 sm:size-7 touch-manipulation shrink-0" />
         <Separator orientation="vertical" className="h-5 hidden sm:block" />
-        <img
-          src={vishnuLogo}
-          alt="Vishnu Engineering College"
-          className="h-7 sm:h-8 w-auto shrink-0"
-        />
+        <span className="inline-flex shrink-0 p-1.5 dark:bg-white">
+          <img
+            src={vishnuLogo}
+            alt="Vishnu Engineering College"
+            className="h-7 sm:h-8 w-auto"
+          />
+        </span>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3 shrink-0">
           <h1 className="font-display font-semibold text-sm truncate hidden sm:block">

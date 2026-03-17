@@ -51,12 +51,17 @@ export default function QuizTakerPage() {
 
         if (!quizTitle || !durationMinutes) {
           try {
-            const data = await api.get<{ active?: AssignedQuiz[]; upcoming?: AssignedQuiz[] } | AssignedQuiz[]>(
-              `/exam/quizzes`,
-            );
+            const data = await api.get<
+              | { active?: AssignedQuiz[]; upcoming?: AssignedQuiz[]; completed?: AssignedQuiz[] }
+              | AssignedQuiz[]
+            >(`/exam/quizzes`);
             const quizList = Array.isArray(data)
               ? data
-              : [...(data.active ?? []), ...(data.upcoming ?? [])];
+              : [
+                  ...(data.active ?? []),
+                  ...(data.upcoming ?? []),
+                  ...(data.completed ?? []),
+                ];
             const quiz = quizList.find((q: AssignedQuiz) => q.id === quizId);
             if (quiz) {
               quizTitle = quizTitle || quiz.title;

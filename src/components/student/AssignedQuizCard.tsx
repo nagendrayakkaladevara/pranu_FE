@@ -17,12 +17,18 @@ const ATTEMPT_STATUS_CLASSES: Record<string, string> = {
 };
 
 interface AssignedQuizCardProps {
-  quiz: AssignedQuiz;
+  quiz: AssignedQuiz & { attemptId?: string; score?: number };
   onStartQuiz: (quiz: AssignedQuiz) => void;
+  onViewResult?: (attemptId: string) => void;
   onCountdownReachZero?: () => void;
 }
 
-export function AssignedQuizCard({ quiz, onStartQuiz, onCountdownReachZero }: AssignedQuizCardProps) {
+export function AssignedQuizCard({
+  quiz,
+  onStartQuiz,
+  onViewResult,
+  onCountdownReachZero,
+}: AssignedQuizCardProps) {
   const questionCount =
     quiz._count?.questions ??
     (Array.isArray(quiz.questions) ? quiz.questions.length : 0);
@@ -66,7 +72,11 @@ export function AssignedQuizCard({ quiz, onStartQuiz, onCountdownReachZero }: As
             {quiz.lastAttemptStatus.replace("_", " ")}
           </Badge>
         )}
-        <Badge variant="outline">{quiz.totalMarks} marks</Badge>
+        <Badge variant="outline">
+          {"score" in quiz && typeof quiz.score === "number"
+            ? `${quiz.score}/${quiz.totalMarks}`
+            : `${quiz.totalMarks} marks`}
+        </Badge>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
@@ -122,6 +132,19 @@ export function AssignedQuizCard({ quiz, onStartQuiz, onCountdownReachZero }: As
           Starts soon
         </Button>
       )}
+
+      {quiz.availability === "ENDED" &&
+        "attemptId" in quiz &&
+        typeof quiz.attemptId === "string" &&
+        onViewResult && (
+          <Button
+            className="w-full"
+            variant="outline"
+            onClick={() => onViewResult(quiz.attemptId as string)}
+          >
+            View Result
+          </Button>
+        )}
     </div>
   );
 }

@@ -64,7 +64,7 @@ export function ScoreCard({ result }: ScoreCardProps) {
         }}
       />
 
-      <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
+      <div className="relative flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10">
         {/* Circular progress ring */}
         <div
           className="score-card-ring flex shrink-0 items-center justify-center"
@@ -111,7 +111,7 @@ export function ScoreCard({ result }: ScoreCardProps) {
         </div>
 
         {/* Score details */}
-        <div className="flex flex-1 flex-col gap-4 sm:gap-5">
+        <div className="flex flex-1 flex-col items-center gap-4 text-center sm:gap-5">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">
               Your Score
@@ -144,20 +144,20 @@ export function ScoreCard({ result }: ScoreCardProps) {
             </div>
           )}
 
-          {/* Stats row */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Trophy className="size-4 shrink-0 text-amber-500/80" />
-              <span>{scorePercentage}%</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="size-4 shrink-0" />
-              <span>{formatDuration(result.timeTaken)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Target className="size-4 shrink-0" />
-              <span>Pass: {result.passMarks} marks</span>
-            </div>
+          {/* Stats row: percentage • time • pass marks */}
+          <div className="flex flex-nowrap items-center justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5 shrink-0">
+              <Trophy className="size-4 text-amber-500/80" />
+              {scorePercentage}%
+            </span>
+            <span className="flex items-center gap-1.5 shrink-0">
+              <Clock className="size-4" />
+              {formatDuration(result.timeTaken)}
+            </span>
+            <span className="flex items-center gap-1.5 shrink-0">
+              <Target className="size-4" />
+              Pass: {result.passMarks} marks
+            </span>
           </div>
         </div>
       </div>
